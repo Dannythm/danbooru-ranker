@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Danbooru Likeness Ranker
 
 A web application for collecting, generating, and comparing AI-generated images in the style of various artists from Danbooru. This tool helps evaluate how well different Stable Diffusion models can replicate specific artistic styles.
@@ -201,7 +200,3 @@ This project is open source and available under the MIT License.
 - [Danbooru](https://danbooru.donmai.us/) for the artist and image data
 - [Gelbooru](https://gelbooru.com/) for fallback image sources
 - [AUTOMATIC1111's Stable Diffusion WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) for the generation API
-=======
-# danbooru-ranker
-Automated tool to look for styles and easily check the similiraties AI generated images against artists.
->>>>>>> 84814b1215fe2d2d3c92be91861d8d7a64aea413
