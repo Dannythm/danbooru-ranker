@@ -19,6 +19,7 @@ A web application for collecting, generating, and comparing AI-generated images 
 - **MongoDB**: For data storage
 - **Stable Diffusion WebUI**: Running with API enabled (`--api` flag)
   - For parallel generation, run multiple instances on different ports
+- **Ranking and categorization**: Download the mega from [Artists list](https://rentry.org/artists_list) to us as base for ranking and categorization.
 
 ## Installation
 
@@ -193,7 +194,7 @@ The FastAPI server provides the following endpoints:
 
 ## License
 
-This project is open source and available under the MIT License.
+This project is open source and available under the Unlicense License.
 
 ## Acknowledgments
 
