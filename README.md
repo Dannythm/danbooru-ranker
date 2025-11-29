@@ -19,7 +19,7 @@ A web application for collecting, generating, and comparing AI-generated images 
 - **MongoDB**: For data storage
 - **Stable Diffusion WebUI**: Running with API enabled (`--api` flag)
   - For parallel generation, run multiple instances on different ports
-- **Ranking and categorization**: Download the mega from [Artists list](https://rentry.org/artists_list) to us as base for ranking and categorization.
+- **Ranking and categorization**: Download the mega from [Artists list](https://rentry.org/artists_list) to use as base for ranking and categorization.
 
 ## Installation
 
@@ -40,23 +40,6 @@ A web application for collecting, generating, and comparing AI-generated images 
 
 4. **Configure the application**:
    ```bash
-   # Copy the example config file
-   cp config.example.py config.py
-   ```
-   - Edit `config.py` to customize:
-     - MongoDB connection settings
-     - Data directories (images, generated outputs)
-     - Stable Diffusion API URLs (add multiple for parallel generation)
-
-## Configuration
-
-Edit `config.py` to customize your setup:
-
-```python
-# MongoDB Configuration
-MONGO_URI = "mongodb://localhost:27017/"
-DB_NAME = "danbooru_ranker"
-
 # Stable Diffusion API Configuration
 # Add multiple URLs to enable parallel generation across GPUs
 SD_API_URLS = [

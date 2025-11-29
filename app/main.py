@@ -15,7 +15,7 @@ import sys
 # Add parent directory to path to import config
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from config import MONGO_URI, DB_NAME, DATA_DIR, IMAGES_DIR, GENERATED_DIR, SD_API_URL
+from config import MONGO_URI, DB_NAME, DATA_DIR, IMAGES_DIR, GENERATED_DIR, SD_API_URL, SD_API_URLS
 
 # Manual upload directory
 MANUAL_DIR = os.path.join(DATA_DIR, "manual")
@@ -64,6 +64,14 @@ class GeneratorRequest(BaseModel):
     authors: str = "" # Comma separated IDs
     skip_existing: bool = False
 
+class ConfigModel(BaseModel):
+    mongo_uri: str
+    db_name: str
+    data_dir: str
+    sd_api_urls: List[str]
+    style_html_path: Optional[str] = ""
+    style_samples_dir: Optional[str] = ""
+
 # Routes
 
 @app.get("/api/stats")
@@ -105,6 +113,89 @@ async def get_status():
         }
         
     return result
+
+@app.get("/api/config")
+async def get_config():
+    """Get current configuration settings"""
+    from config import SD_API_URLS
+    
+    # Try to load from MongoDB first
+    config_doc = await db.app_config.find_one({"_id": "settings"})
+    
+    if config_doc:
+        return {
+            "mongo_uri": config_doc.get("mongo_uri", MONGO_URI),
+            "db_name": config_doc.get("db_name", DB_NAME),
+            "data_dir": config_doc.get("data_dir", DATA_DIR),
+            "sd_api_urls": config_doc.get("sd_api_urls", SD_API_URLS),
+            "style_html_path": config_doc.get("style_html_path", ""),
+            "style_samples_dir": config_doc.get("style_samples_dir", "")
+        }
+    else:
+        # Return defaults from config.py
+        return {
+            "mongo_uri": MONGO_URI,
+            "db_name": DB_NAME,
+            "data_dir": DATA_DIR,
+            "sd_api_urls": SD_API_URLS,
+            "style_html_path": "",
+            "style_samples_dir": ""
+        }
+
+@app.post("/api/config")
+async def update_config(config: ConfigModel):
+    """Update configuration settings"""
+    config_data = {
+        "_id": "settings",
+        "mongo_uri": config.mongo_uri,
+        "db_name": config.db_name,
+        "data_dir": config.data_dir,
+        "sd_api_urls": config.sd_api_urls,
+        "style_html_path": config.style_html_path,
+        "style_samples_dir": config.style_samples_dir,
+        "updated_at": datetime.now()
+    }
+    
+    await db.app_config.update_one(
+        {"_id": "settings"},
+        {"$set": config_data},
+        upsert=True
+    )
+    
+    return {"status": "success", "message": "Configuration saved. Restart the app to apply changes."}
+
+@app.post("/api/config/scan-sd")
+async def scan_sd_instances():
+    """Scan for running Stable Diffusion WebUI instances"""
+    found_urls = []
+    
+    for port in range(7860, 7870):  # Check ports 7860-7869
+        url = f"http://127.0.0.1:{port}"
+        try:
+            response = requests.get(f"{url}/sdapi/v1/sd-models", timeout=1)
+            if response.status_code == 200:
+                models = response.json()
+                found_urls.append({
+                    "url": url,
+                    "model_count": len(models),
+                    "status": "online"
+                })
+        except:
+            pass
+    
+    return {"instances": found_urls, "found_count": len(found_urls)}
+
+@app.post("/api/config/validate-paths")
+async def validate_style_paths(html_path: str = Form(...), samples_dir: str = Form(...)):
+    """Validate that style analysis paths exist"""
+    html_exists = os.path.exists(html_path) if html_path else False
+    samples_exists = os.path.exists(samples_dir) if samples_dir else False
+    
+    return {
+        "html_valid": html_exists,
+        "samples_valid": samples_exists,
+        "both_valid": html_exists and samples_exists
+    }
 
 @app.get("/api/categories")
 async def get_categories():

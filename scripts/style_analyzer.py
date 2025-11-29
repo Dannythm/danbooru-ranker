@@ -11,11 +11,15 @@ from io import BytesIO
 import numpy as np
 from tqdm import tqdm
 
+# Add parent directory to path to import config
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import config
+
 # Configuration
-MONGO_URI = "mongodb://localhost:27017/"
-DB_NAME = "danbooru_ranker"
-HTML_FILE = r'h:/MEGA/AG/Artists_Gens.html'
-SAMPLES_DIR = r'h:/MEGA/AG/Artists_Gens_files/samples'
+MONGO_URI = config.MONGO_URI
+DB_NAME = config.DB_NAME
+HTML_FILE = config.STYLE_HTML_PATH
+SAMPLES_DIR = config.STYLE_SAMPLES_DIR
 MODEL_ID = "openai/clip-vit-base-patch32"
 BATCH_SIZE = 32
 
@@ -45,6 +49,11 @@ def parse_ground_truth(db):
     print(f"Parsing {HTML_FILE}...")
     update_status(db, "running", 0, "Parsing ground truth HTML...", 0, 0)
     
+    if not HTML_FILE or not SAMPLES_DIR:
+        print("Error: Style analysis paths not configured. Please set them in the Configuration tab.")
+        update_status(db, "error", 0, "Paths not configured", 0, 0)
+        return {}
+
     if not os.path.exists(HTML_FILE):
         print(f"Error: File not found: {HTML_FILE}")
         return {}

@@ -30,19 +30,9 @@
 
 <body class="bg-gray-900 text-gray-100 h-screen flex flex-col overflow-hidden">
     <!-- Top Navigation -->
-    <div class="h-12 bg-gray-800 border-b border-gray-700 flex items-center px-4 space-x-6 shrink-0">
-        <h1 class="text-lg font-bold text-blue-400 mr-4">Likeness Ranker</h1>
-        <button onclick="switchTab('browse')" id="tab-browse"
-            class="tab-active px-4 h-full text-sm font-medium transition">Browse & Compare</button>
-        <button onclick="switchTab('control')" id="tab-control"
-            class="px-4 h-full text-sm font-medium text-gray-400 hover:text-gray-200 transition">Control Panel</button>
-        <div class="ml-auto flex items-center space-x-2">
-            <label class="flex items-center space-x-2 text-xs text-gray-400 cursor-pointer">
-                <input type="checkbox" id="autoRefresh"
-                    class="form-checkbox rounded bg-gray-700 border-gray-600 text-blue-500">
-                <span>Auto-Refresh (10s)</span>
-            </label>
-        </div>
+    <span>Auto-Refresh (10s)</span>
+    </label>
+    </div>
     </div>
 
     <!-- Main Content -->
@@ -219,6 +209,98 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Configuration Tab Content - Insert after view-control div (around line 205) -->
+            <div id="view-settings" class="h-full hidden overflow-y-auto p-6">
+                <div class="max-w-4xl mx-auto space-y-6">
+                    <h2 class="text-2xl font-bold text-blue-400 mb-4">Application Configuration</h2>
+
+                    <!-- Database Settings -->
+                    <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                        <h3 class="text-lg font-semibold text-blue-400 mb-4">Database Settings</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1">MongoDB URI</label>
+                                <input type="text" id="cfgMongoUri" placeholder="mongodb://localhost:27017/"
+                                    class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1">Database Name</label>
+                                <input type="text" id="cfgDbName" placeholder="danbooru_ranker"
+                                    class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paths -->
+                    <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                        <h3 class="text-lg font-semibold text-green-400 mb-4">Data Directories</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1">Data Directory</label>
+                                <input type="text" id="cfgDataDir" placeholder="Path to data directory"
+                                    class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm">
+                                <p class="text-xs text-gray-500 mt-1">Images and generated outputs will be stored here
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SD API URLs -->
+                    <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                        <h3 class="text-lg font-semibold text-purple-400 mb-4">Stable Diffusion APIs</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-2">API URLs (one per line)</label>
+                                <textarea id="cfgSdUrls" rows="3" placeholder="http://127.0.0.1:7860"
+                                    class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm font-mono"></textarea>
+                                <button onclick="scanSDInstances()"
+                                    class="mt-2 bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded text-sm">
+                                    🔍 Scan for SD Instances
+                                </button>
+                                <div id="sdScanResults" class="mt-2 hidden">
+                                    <p class="text-xs text-gray-400 mb-1">Detected instances:</p>
+                                    <div id="sdInstanceList" class="space-y-1"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Style Analysis -->
+                    <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                        <h3 class="text-lg font-semibold text-yellow-400 mb-4">Style Analysis (Optional)</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1">HTML File Path</label>
+                                <input type="text" id="cfgStyleHtml" placeholder="Path to Artists_Gens.html"
+                                    class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1">Samples Directory</label>
+                                <input type="text" id="cfgStyleSamples" placeholder="Path to samples directory"
+                                    class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm">
+                            </div>
+                            <button onclick="validateStylePaths()"
+                                class="bg-yellow-600 hover:bg-yellow-500 text-white px-4 py-2 rounded text-sm">
+                                ✓ Validate Paths
+                            </button>
+                            <div id="stylePathValidation" class="hidden text-xs mt-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- Save Button -->
+                    <div class="flex justify-between items-center">
+                        <p class="text-xs text-gray-400">
+                            Changes will be saved to MongoDB. Restart the app to apply.
+                        </p>
+                        <button onclick="saveConfiguration()"
+                            class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded font-medium">
+                            💾 Save Configuration
+                        </button>
+                    </div>
+                    <div id="cfgSaveMessage" class="hidden text-sm text-center py-2 rounded"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -284,6 +366,7 @@
         function switchTab(tab) {
             document.getElementById('view-browse').classList.add('hidden');
             document.getElementById('view-control').classList.add('hidden');
+            document.getElementById('view-settings').classList.add('hidden');
             document.getElementById('tab-browse').classList.remove('tab-active', 'text-blue-400');
             document.getElementById('tab-control').classList.remove('tab-active', 'text-blue-400');
             document.getElementById('tab-browse').classList.add('text-gray-400');
@@ -535,15 +618,111 @@
                 const res = await fetch('/api/stats');
                 const stats = await res.json();
                 document.getElementById('statAuthors').textContent = stats.authors;
-                document.getElementById('statImages').textContent = stats.images;
-                document.getElementById('statGens').textContent = stats.generations;
-            } catch (e) { }
+                document.getElementById('cfgDataDir').value = config.data_dir;
+                document.getElementById('cfgSdUrls').value = config.sd_api_urls.join('\n');
+                document.getElementById('cfgStyleHtml').value = config.style_html_path || '';
+                document.getElementById('cfgStyleSamples').value = config.style_samples_dir || '';
+            } catch (error) {
+                console.error('Failed to load configuration:', error);
+            }
         }
 
-        setInterval(() => { if (document.getElementById('autoRefresh').checked) { if (currentAuthorId) loadImages(currentAuthorId); } }, 10000);
-        setInterval(pollStatus, 2000);
-        setInterval(loadStats, 30000);
-        loadCategories(); loadAuthors(); loadStats();
+        async function saveConfiguration() {
+            const config = {
+                mongo_uri: document.getElementById('cfgMongoUri').value,
+                db_name: document.getElementById('cfgDbName').value,
+                data_dir: document.getElementById('cfgDataDir').value,
+                sd_api_urls: document.getElementById('cfgSdUrls').value.split('\n').filter(u => u.trim()),
+                style_html_path: document.getElementById('cfgStyleHtml').value,
+                style_samples_dir: document.getElementById('cfgStyleSamples').value
+            };
+
+            try {
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                const result = await response.json();
+
+                const msgDiv = document.getElementById('cfgSaveMessage');
+                msgDiv.textContent = result.message;
+                msgDiv.className = 'bg-green-700 text-white text-sm text-center py-2 rounded';
+                msgDiv.classList.remove('hidden');
+                setTimeout(() => msgDiv.classList.add('hidden'), 5000);
+            } catch (error) {
+                const msgDiv = document.getElementById('cfgSaveMessage');
+                msgDiv.textContent = 'Failed to save configuration: ' + error.message;
+                msgDiv.className = 'bg-red-700 text-white text-sm text-center py-2 rounded';
+                msgDiv.classList.remove('hidden');
+            }
+        }
+
+        async function scanSDInstances() {
+            try {
+                const response = await fetch('/api/config/scan-sd', { method: 'POST' });
+                const result = await response.json();
+
+                const resultsDiv = document.getElementById('sdScanResults');
+                const listDiv = document.getElementById('sdInstanceList');
+
+                if (result.found_count > 0) {
+                    listDiv.innerHTML = result.instances.map(inst => `
+                <div class="bg-gray-900 rounded px-3 py-2 flex justify-between items-center">
+                    <span class="text-sm text-gray-300">${inst.url}</span>
+                    <span class="text-xs text-gray-400">Models: ${inst.model_count}</span>
+                </div>
+            `).join('');
+
+                    // Auto-fill textarea
+                    const currentUrls = document.getElementById('cfgSdUrls').value.split('\n').filter(u => u.trim());
+                    const allUrls = [...new Set([...currentUrls, ...result.instances.map(i => i.url)])];
+                    document.getElementById('cfgSdUrls').value = allUrls.join('\n');
+
+                    resultsDiv.classList.remove('hidden');
+                } else {
+                    listDiv.innerHTML = '<p class="text-xs text-gray-500">No SD instances found on ports 7860-7869</p>';
+                    resultsDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Scan failed:', error);
+            }
+        }
+
+        async function validateStylePaths() {
+            const htmlPath = document.getElementById('cfgStyleHtml').value;
+            const samplesDir = document.getElementById('cfgStyleSamples').value;
+
+            if (!htmlPath && !samplesDir) {
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('html_path', htmlPath);
+                formData.append('samples_dir', samplesDir);
+
+                const response = await fetch('/api/config/validate-paths', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                const validationDiv = document.getElementById('stylePathValidation');
+                validationDiv.innerHTML = `
+            <span class="${result.html_valid ? 'text-green-400' : 'text-red-400'}">
+                ${result.html_valid ? '✓' : '✗'} HTML File
+            </span>
+            <span class="${result.samples_valid ? 'text-green-400' : 'text-red-400'} ml-4">
+                ${result.samples_valid ? '✓' : '✗'} Samples Directory
+            </span>
+        `;
+                validationDiv.classList.remove('hidden');
+            } catch (error) {
+                console.error('Validation failed:', error);
+            }
+        }
+
     </script>
 </body>
 
