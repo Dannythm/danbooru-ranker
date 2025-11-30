@@ -172,7 +172,7 @@ async def scan_sd_instances():
     for port in range(7860, 7870):  # Check ports 7860-7869
         url = f"http://127.0.0.1:{port}"
         try:
-            response = requests.get(f"{url}/sdapi/v1/sd-models", timeout=1)
+            response = requests.get(f"{url}/sdapi/v1/sd-models", timeout=3)
             if response.status_code == 200:
                 models = response.json()
                 found_urls.append({
@@ -180,10 +180,39 @@ async def scan_sd_instances():
                     "model_count": len(models),
                     "status": "online"
                 })
-        except:
+            else:
+                found_urls.append({
+                    "url": url,
+                    "model_count": 0,
+                    "status": "error",
+                    "detail": f"HTTP {response.status_code} (Check --api)"
+                })
+        except Exception as e:
             pass
     
     return {"instances": found_urls, "found_count": len(found_urls)}
+
+@app.post("/api/config/reset")
+async def reset_configuration():
+    """
+    Factory Reset: Drops the database and clears data directories.
+    """
+    try:
+        # Drop Database
+        client = AsyncIOMotorClient(config.MONGO_URI)
+        await client.drop_database(config.DB_NAME)
+        
+        # Clear Directories
+        for dir_path in [config.IMAGES_DIR, config.GENERATED_DIR]:
+            if os.path.exists(dir_path):
+                shutil.rmtree(dir_path)
+                os.makedirs(dir_path, exist_ok=True)
+            else:
+                os.makedirs(dir_path, exist_ok=True)
+                
+        return {"message": "Factory reset complete. All data has been cleared."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/config/validate-paths")
 async def validate_style_paths(html_path: str = Form(...), samples_dir: str = Form(...)):

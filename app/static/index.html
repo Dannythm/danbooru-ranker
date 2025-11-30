@@ -23,691 +23,570 @@
 
         .tab-active {
             border-bottom: 2px solid #60a5fa;
-            <div id="view-browse" class="h-full flex">< !-- Sidebar --><div class="w-72 bg-gray-800 border-r border-gray-700 flex flex-col"><div class="p-2 border-b border-gray-700 bg-gray-900 text-xs text-gray-400 flex justify-between px-4"><div class="text-center"><div class="text-2xl font-bold text-blue-400" id="statAuthors">0</div><div class="text-xs text-gray-400 uppercase tracking-wider">Artists</div></div><div class="text-center"><div class="text-2xl font-bold text-green-400" id="statImages">0</div><div class="text-xs text-gray-400 uppercase tracking-wider">Images</div></div><div class="text-center"><div class="text-2xl font-bold text-purple-400" id="statGens">0</div><div class="text-xs text-gray-400 uppercase tracking-wider">Gens</div></div></div><div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800"><h2 class="font-bold text-lg text-gray-200">Artists</h2><button onclick="loadAuthors()" class="text-gray-400 hover:text-white">↻</button></div><div class="p-2 border-b border-gray-700 bg-gray-800"><input type="text" id="authorSearch" placeholder="Search artists..."
-            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm text-gray-200 focus:border-blue-500 outline-none"><div class="flex flex-col gap-2 mt-2"><select id="authorCategory" onchange="loadAuthors()"
-            class="w-full bg-gray-900 border border-gray-600 rounded px-1 py-1 text-xs text-gray-300"><option value="">All Styles</option></select><div class="flex gap-1"><select id="authorSort" onchange="loadAuthors()"
-            class="flex-1 bg-gray-900 border border-gray-600 rounded px-1 py-1 text-xs text-gray-300"><option value="name">Name</option><option value="image_count">Img Count</option><option value="gen_count">Gen Count</option></select><button onclick="loadAuthors()"
-            class="bg-gray-700 hover:bg-gray-600 rounded px-2 text-gray-300"
-            title="Refresh List">🔄</button></div></div></div><div id="authorList" class="flex-1 overflow-y-auto p-1 space-y-1 scrollbar-hide"></div>< !-- Pagination --><div class="flex justify-between items-center p-2 border-t border-gray-700 bg-gray-800"><button onclick="changePage(-1)"
-            class="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600 text-xs text-gray-300">Prev</button><span class="text-xs text-gray-400" id="pageIndicator">Page 1</span><button onclick="changePage(1)"
-            class="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600 text-xs text-gray-300">Next</button></div><div class="p-2 border-t border-gray-700"><button onclick="openImportModal()"
-            class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs py-1 rounded">Import from URL</button></div></div>< !-- Image Grid --><div class="flex-1 flex flex-col bg-gray-900"><div class="h-12 border-b border-gray-700 flex items-center px-4 justify-between bg-gray-800"><div class="flex items-center gap-4"><h2 class="text-xl font-bold text-white flex items-center gap-2"><span id="currentAuthor">Select an Artist</span><span class="text-sm font-normal text-gray-400" id="imgCount"></span></h2><button id="btnGenAuthor" onclick="startGeneratorForAuthor()"
-            class="hidden bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm flex items-center gap-1"><span>✨</span>Generate for this Artist</button></div><div class="text-xs text-gray-500"><span id="imgCount">0</span>images</div></div><div id="imageGrid" class="flex-1 overflow-y-auto p-4 space-y-6"><div class="text-center mt-20 text-gray-500">Select an artist to view images.</div></div></div></div>< !-- Control Panel Tab --><div id="view-control" class="h-full hidden overflow-y-auto p-6"><div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">< !-- Scraper Card --><div class="bg-gray-800 rounded-lg border border-gray-700 p-4"><h3 class="text-lg font-semibold text-blue-400 mb-4">Data Collection (Scraper)</h3><div class="space-y-4"><div><label class="block text-xs text-gray-400 mb-1">Limit Artists to Process</label><input type="number" id="scraperLimit" value="10"
-            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"></div><div><label class="block text-xs text-gray-400 mb-1">Max Images per Artist</label><input type="number" id="scraperMax" value="5"
-            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"></div><div><label class="block text-xs text-gray-400 mb-1">Min Posts per Artist</label><input type="number" id="scraperMinPosts" value="50"
-            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"></div><button onclick="startScraper()"
-            class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded font-medium">Start Scraper</button></div></div>< !-- Style Analysis Card --><div class="bg-gray-800 rounded-lg border border-gray-700 p-4"><h3 class="text-lg font-semibold text-purple-400 mb-4">Style Analysis</h3><div class="space-y-4"><p class="text-xs text-gray-400">Classify images into styles based on ground truth and aggregate results to artists.</p><div class="grid grid-cols-2 gap-4"><button onclick="startAnalysis()"
-            class="bg-purple-700 hover:bg-purple-600 text-white py-2 rounded font-medium">Run Analysis</button><button onclick="startAggregation()"
-            class="bg-purple-900 hover:bg-purple-800 text-white py-2 rounded font-medium">Run Aggregation</button></div></div></div>< !-- Generator Card --><div class="bg-gray-800 rounded-lg border border-gray-700 p-4 md:col-span-2"><h3 class="text-lg font-semibold text-green-400 mb-4">Image Generation</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="space-y-4"><div><label class="block text-xs text-gray-400 mb-1">Select Models</label><div id="modelList"
-            class="h-32 overflow-y-auto bg-gray-900 border border-gray-600 rounded p-2 space-y-1"><div class="text-xs text-gray-500">Loading models...</div></div></div><div><label class="block text-xs text-gray-400 mb-1">Prompt Suffix (Optional)</label><textarea id="genPrompt" rows="2" placeholder="e.g. masterpiece, best quality"
-            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm">masterpiece,
-            best quality,
-            newest,
-            absurdres,
-            highres,
-            very awa</textarea></div></div><div class="space-y-4"><div class="grid grid-cols-2 gap-4"><div><label class="block text-xs text-gray-400 mb-1">Steps</label><input type="number"
-            id="genSteps" value="28"
-            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"></div><div><label class="block text-xs text-gray-400 mb-1">CFG Scale</label><input type="number" id="genCfg" value="4.0" step="0.5"
-            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"></div></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-xs text-gray-400 mb-1">Sampler</label><select id="genSampler"
-            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"><option>Euler a</option></select></div><div><label class="block text-xs text-gray-400 mb-1">Scheduler</label><select id="genScheduler"
-            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"><option>Automatic</option></select></div></div><div><label class="block text-xs text-gray-400 mb-1">Limit (0=All)</label><input type="number" id="genLimit" value="0"
-            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"></div><button onclick="startGenerator()"
-            class="w-full bg-green-700 hover:bg-green-600 text-white py-2 rounded font-medium">Start Generation (Default: All New)</button></div></div></div></div>< !-- Configuration Tab Content - Insert after view-control div (around line 205) --><div id="view-settings" class="h-full hidden overflow-y-auto p-6"><div class="max-w-4xl mx-auto space-y-6"><h2 class="text-2xl font-bold text-blue-400 mb-4">Application Configuration</h2>< !-- Database Settings --><div class="bg-gray-800 rounded-lg border border-gray-700 p-4"><h3 class="text-lg font-semibold text-blue-400 mb-4">Database Settings</h3><div class="space-y-4"><div><label class="block text-xs text-gray-400 mb-1">MongoDB URI</label><input type="text" id="cfgMongoUri" placeholder="mongodb://localhost:27017/"
-            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"></div><div><label class="block text-xs text-gray-400 mb-1">Database Name</label><input type="text" id="cfgDbName" placeholder="danbooru_ranker"
-            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"></div></div></div>< !-- Paths --><div class="bg-gray-800 rounded-lg border border-gray-700 p-4"><h3 class="text-lg font-semibold text-green-400 mb-4">Data Directories</h3><div class="space-y-4"><div><label class="block text-xs text-gray-400 mb-1">Data Directory</label><input type="text" id="cfgDataDir" placeholder="Path to data directory"
-            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"><p class="text-xs text-gray-500 mt-1">Images and generated outputs will be stored here </p></div></div></div>< !-- SD API URLs --><div class="bg-gray-800 rounded-lg border border-gray-700 p-4"><h3 class="text-lg font-semibold text-purple-400 mb-4">Stable Diffusion APIs</h3><div class="space-y-4"><div><label class="block text-xs text-gray-400 mb-2">API URLs (one per line)</label><textarea id="cfgSdUrls" rows="3" placeholder="http://127.0.0.1:7860"
-            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm font-mono"></textarea><button onclick="scanSDInstances()"
-            class="mt-2 bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded text-sm">🔍 Scan for SD Instances </button><div id="sdScanResults" class="mt-2 hidden"><p class="text-xs text-gray-400 mb-1">Detected instances: </p> <div id="sdInstanceList" class="space-y-1" ></div> </div> </div> </div> </div> < !-- Style Analysis --> <div class="bg-gray-800 rounded-lg border border-gray-700 p-4" > <h3 class="text-lg font-semibold text-yellow-400 mb-4" >Style Analysis (Optional)</h3> <div class="space-y-4" > <div> <label class="block text-xs text-gray-400 mb-1" >HTML File Path</label> <input type="text" id="cfgStyleHtml" placeholder="Path to Artists_Gens.html"
-                class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm" > </div> <div> <label class="block text-xs text-gray-400 mb-1" >Samples Directory</label> <input type="text" id="cfgStyleSamples" placeholder="Path to samples directory"
-                class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm" > </div> <button onclick="validateStylePaths()"
-                class="bg-yellow-600 hover:bg-yellow-500 text-white px-4 py-2 rounded text-sm" > ✓ Validate Paths </button> <div id="stylePathValidation" class="hidden text-xs mt-2" ></div> </div> </div> < !-- Save Button --> <div class="flex justify-between items-center" > <p class="text-xs text-gray-400" > Changes will be saved to MongoDB. Restart the app to apply. </p> <button onclick="saveConfiguration()"
-                class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded font-medium" > 💾 Save Configuration </button> </div> <div id="cfgSaveMessage" class="hidden text-sm text-center py-2 rounded" ></div> </div> </div> </div> </div> < !-- Status Bar --> <div id="statusBar"
-                class="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 text-white text-xs p-2 hidden z-50 shadow-lg" > <div class="flex justify-between items-center mb-2" > <span class="font-bold text-gray-400" >Background Tasks</span> <button onclick="document.getElementById('statusBar').classList.add('hidden')"
-                class="text-gray-400 hover:text-white" >✕</button> </div> <div id="taskList" class="space-y-2" ></div> </div> < !-- Modals --> <div id="importModal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center z-50" > <div class="bg-gray-800 rounded-lg p-6 w-96 border border-gray-700" > <h3 class="text-lg font-bold mb-4" >Import from Danbooru</h3> <input type="text" id="importUrl" placeholder="https://danbooru.donmai.us/posts/..."
-                class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 mb-4 text-sm" > <div class="flex justify-end space-x-2" > <button onclick="closeImportModal()" class="px-4 py-2 text-gray-400 hover:text-white" >Cancel</button> <button onclick="submitImport()"
-                class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded text-white" >Import</button> </div> </div> </div> <div id="uploadModal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center z-50" > <div class="bg-gray-800 rounded-lg p-6 w-96 border border-gray-700" > <h3 class="text-lg font-bold mb-4" >Upload Generation</h3> <form onsubmit="submitUpload(event)" class="space-y-3" > <input type="hidden" name="author_id" id="uploadAuthorId" > <input type="hidden" name="original_image_id" id="uploadOriginalId" > <div><label class="block text-xs text-gray-400 mb-1" >Image File</label><input type="file" name="file"
-                required class="w-full text-sm text-gray-400" ></div> <div><label class="block text-xs text-gray-400 mb-1" >Model Name</label><input type="text" name="model"
-                required class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm" ></div> <div><label class="block text-xs text-gray-400 mb-1" >Prompt</label><textarea name="prompt" rows="2"
-                class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm" ></textarea></div> <div class="grid grid-cols-2 gap-2" > <div><label class="block text-xs text-gray-400 mb-1" >Steps</label><input type="number" name="steps"
-                class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm" ></div> <div><label class="block text-xs text-gray-400 mb-1" >CFG</label><input type="number" name="cfg"
-                step="0.1" class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm" > </div> </div> <div class="flex justify-end space-x-2 mt-4" > <button type="button" onclick="closeUploadModal()"
-                class="px-4 py-2 text-gray-400 hover:text-white" >Cancel</button> <button type="submit"
-                class="px-4 py-2 bg-green-600 hover:bg-green-500 rounded text-white" >Upload</button> </div> </form> </div> </div> <script> let currentAuthorId=null;
-            let sortOrder='asc';
-            let currentPage=1;
-            let totalPages=1;
+            color: #60a5fa;
+        }
+    </style>
+</head>
 
-            function switchTab(tab) {
-                document.getElementById('view-browse').classList.add('hidden');
-                document.getElementById('view-control').classList.add('hidden');
-                document.getElementById('view-settings').classList.add('hidden');
-                document.getElementById('tab-browse').classList.remove('tab-active', 'text-blue-400');
-                document.getElementById('tab-control').classList.remove('tab-active', 'text-blue-400');
-                document.getElementById('tab-browse').classList.add('text-gray-400');
-                document.getElementById('tab-control').classList.add('text-gray-400');
+<body class="bg-gray-900 text-gray-100 h-screen flex flex-col overflow-hidden">
+    <!-- Top Navigation -->
+    <div class="h-12 bg-gray-800 border-b border-gray-700 flex items-center px-4 space-x-6 shrink-0">
+        <h1 class="text-lg font-bold text-blue-400 mr-4">Likeness Ranker</h1>
+        <button onclick="switchTab('browse')" id="tab-browse"
+            class="tab-active px-4 h-full text-sm font-medium transition">Browse & Compare</button>
+        <button onclick="switchTab('control')" id="tab-control"
+            class="px-4 h-full text-sm font-medium text-gray-400 hover:text-gray-200 transition">Control Panel</button>
+        <button onclick="switchTab('settings')" id="tab-settings"
+            class="px-4 h-full text-sm font-medium text-gray-400 hover:text-gray-200 transition">Configuration</button>
+        <div class="ml-auto flex items-center space-x-2">
+            <label class="flex items-center space-x-2 text-xs text-gray-400 cursor-pointer">
+                <input type="checkbox" id="autoRefresh"
+                    class="form-checkbox rounded bg-gray-700 border-gray-600 text-blue-500">
+                <span>Auto-Refresh (10s)</span>
+            </label>
+        </div>
+    </div>
 
-                document.getElementById(`view-$ {
-                        tab
-                    }
+    <!-- Main Content -->
+    <div class="flex-1 overflow-hidden relative">
+        <!-- Browse Tab -->
+        <div id="view-browse" class="h-full flex">
+            <!-- Sidebar -->
+            <div class="w-72 bg-gray-800 border-r border-gray-700 flex flex-col">
+                <div class="p-2 border-b border-gray-700 bg-gray-900 text-xs text-gray-400 flex justify-between px-4">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-400" id="statAuthors">0</div>
+                        <div class="text-xs text-gray-400 uppercase tracking-wider">Artists</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-green-400" id="statImages">0</div>
+                        <div class="text-xs text-gray-400 uppercase tracking-wider">Images</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-purple-400" id="statGens">0</div>
+                        <div class="text-xs text-gray-400 uppercase tracking-wider">Gens</div>
+                    </div>
+                </div>
+                <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800">
+                    <h2 class="font-bold text-lg text-gray-200">Artists</h2>
+                    <button onclick="loadAuthors()" class="text-gray-400 hover:text-white">↻</button>
+                </div>
+                <div class="p-2 border-b border-gray-700 bg-gray-800">
+                    <input type="text" id="authorSearch" placeholder="Search artists..."
+                        class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm text-gray-200 focus:border-blue-500 outline-none">
+                    <div class="flex flex-col gap-2 mt-2">
+                        <select id="authorCategory" onchange="loadAuthors()"
+                            class="w-full bg-gray-900 border border-gray-600 rounded px-1 py-1 text-xs text-gray-300">
+                            <option value="">All Styles</option>
+                        </select>
+                        <div class="flex gap-1">
+                            <select id="authorSort" onchange="loadAuthors()"
+                                class="flex-1 bg-gray-900 border border-gray-600 rounded px-1 py-1 text-xs text-gray-300">
+                                <option value="name">Name</option>
+                                <option value="image_count">Img Count</option>
+                                <option value="gen_count">Gen Count</option>
+                            </select>
+                            <button onclick="loadAuthors()"
+                                class="bg-gray-700 hover:bg-gray-600 rounded px-2 text-gray-300"
+                                title="Refresh List">🔄</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="authorList" class="flex-1 overflow-y-auto p-1 space-y-1 scrollbar-hide"></div>
+                <div class="flex justify-between items-center p-2 border-t border-gray-700 bg-gray-800">
+                    <button onclick="changePage(-1)"
+                        class="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600 text-xs text-gray-300">Prev</button>
+                    <span class="text-xs text-gray-400" id="pageIndicator">Page 1</span>
+                    <button onclick="changePage(1)"
+                        class="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600 text-xs text-gray-300">Next</button>
+                </div>
+                <div class="p-2 border-t border-gray-700">
+                    <button onclick="openImportModal()"
+                        class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs py-1 rounded">Import from
+                        URL</button>
+                </div>
+            </div>
+            <!-- Image Grid -->
+            <div class="flex-1 flex flex-col bg-gray-900">
+                <div class="h-12 border-b border-gray-700 flex items-center px-4 justify-between bg-gray-800">
+                    <div class="flex items-center gap-4">
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <span id="currentAuthor">Select an Artist</span><span
+                                class="text-sm font-normal text-gray-400" id="imgCount"></span>
+                        </h2>
+                        <button id="btnGenAuthor" onclick="startGeneratorForAuthor()"
+                            class="hidden bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm flex items-center gap-1"><span>✨</span>
+                            Generate for this Artist</button>
+                    </div>
+                    <div class="text-xs text-gray-500"><span id="imgCount">0</span> images</div>
+                </div>
+                <div id="imageGrid" class="flex-1 overflow-y-auto p-4 space-y-6">
+                    <div class="text-center mt-20 text-gray-500">Select an artist to view images.</div>
+                </div>
+            </div>
+        </div>
 
-                    `).classList.remove('hidden');
+        <!-- Control Panel Tab -->
+        <div id="view-control" class="h-full hidden overflow-y-auto p-6">
+            <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                    <h3 class="text-lg font-semibold text-blue-400 mb-4">Data Collection (Scraper)</h3>
+                    <div class="space-y-4">
+                        <div><label class="block text-xs text-gray-400 mb-1">Limit Artists to Process</label><input
+                                type="number" id="scraperLimit" value="10"
+                                class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"></div>
+                        <div><label class="block text-xs text-gray-400 mb-1">Max Images per Artist</label><input
+                                type="number" id="scraperMax" value="5"
+                                class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"></div>
+                        <div><label class="block text-xs text-gray-400 mb-1">Min Posts per Artist</label><input
+                                type="number" id="scraperMinPosts" value="50"
+                                class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"></div>
+                        <button onclick="startScraper()"
+                            class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded font-medium">Start
+                            Scraper</button>
+                    </div>
+                </div>
+                <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                    <h3 class="text-lg font-semibold text-purple-400 mb-4">Style Analysis</h3>
+                    <div class="space-y-4">
+                        <p class="text-xs text-gray-400">Classify images into styles based on ground truth and aggregate
+                            results to artists.</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button onclick="startAnalysis()"
+                                class="bg-purple-700 hover:bg-purple-600 text-white py-2 rounded font-medium">Run
+                                Analysis</button>
+                            <button onclick="startAggregation()"
+                                class="bg-purple-900 hover:bg-purple-800 text-white py-2 rounded font-medium">Run
+                                Aggregation</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-800 rounded-lg border border-gray-700 p-4 md:col-span-2">
+                    <h3 class="text-lg font-semibold text-green-400 mb-4">Image Generation</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div><label class="block text-xs text-gray-400 mb-1">Select Models</label>
+                                <div id="modelList"
+                                    class="h-32 overflow-y-auto bg-gray-900 border border-gray-600 rounded p-2 space-y-1">
+                                    <div class="text-xs text-gray-500">Loading models...</div>
+                                </div>
+                            </div>
+                            <div><label class="block text-xs text-gray-400 mb-1">Prompt Suffix
+                                    (Optional)</label><textarea id="genPrompt" rows="2"
+                                    placeholder="e.g. masterpiece, best quality"
+                                    class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm">masterpiece, best quality, newest, absurdres, highres, very awa</textarea>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs text-gray-400 mb-1">Steps</label><input type="number"
+                                        id="genSteps" value="28"
+                                        class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm">
+                                </div>
+                                <div><label class="block text-xs text-gray-400 mb-1">CFG Scale</label><input
+                                        type="number" id="genCfg" value="4.0" step="0.5"
+                                        class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs text-gray-400 mb-1">Sampler</label><select
+                                        id="genSampler"
+                                        class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm">
+                                        <option>Euler a</option>
+                                    </select></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">Scheduler</label><select
+                                        id="genScheduler"
+                                        class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm">
+                                        <option>Automatic</option>
+                                    </select></div>
+                            </div>
+                            <div><label class="block text-xs text-gray-400 mb-1">Limit (0 = All)</label><input
+                                    type="number" id="genLimit" value="0"
+                                    class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"></div>
+                            <button onclick="startGenerator()"
+                                class="w-full bg-green-700 hover:bg-green-600 text-white py-2 rounded font-medium">Start
+                                Generation (Default: All New)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                document.getElementById(`tab-$ {
-                        tab
-                    }
-
-                    `).classList.add('tab-active', 'text-blue-400');
-
-                document.getElementById(`tab-$ {
-                        tab
-                    }
-
-                    `).classList.remove('text-gray-400');
-                if (tab==='control') loadControlPanelData();
-            }
-
-            async function loadAuthors() {
-                const search=document.getElementById('authorSearch').value;
-                const category=document.getElementById('authorCategory').value;
-                const sortBy=document.getElementById('authorSort').value;
-                const list=document.getElementById('authorList');
-
-                try {
-                    const res=await fetch(`/api/authors?page=$ {
-                            currentPage
-                        }
-
-                        &limit=50&search=$ {
-                            search
-                        }
-
-                        &category=$ {
-                            category
-                        }
-
-                        &sort_by=$ {
-                            sortBy
-                        }
-
-                        &order=$ {
-                            sortOrder
-                        }
-
-                        `);
-                    const data=await res.json();
-                    const authors=data.items || [];
-                    totalPages=data.pages || 1;
-
-                    document.getElementById('pageIndicator').textContent=`Page $ {
-                        currentPage
-                    }
-
-                    of $ {
-                        totalPages
-                    }
-
-                    `;
-
-                    list.innerHTML=authors.map(a=> {
-                            const safeName=a.name.replace(/'/g, "\\' ");
- return ` <div onclick="selectAuthor(${a.id}, '${safeName}')" class="p-2 hover:bg-gray-700 cursor-pointer rounded mx-1 text-sm truncate flex justify-between ${currentAuthorId === a.id ? 'bg-blue-900 text-blue-200' : 'text-gray-300'}" > <div class="flex items-center gap-1" > <div class="font-medium truncate max-w-[120px]" title="${a.name}" >$ {
-                                    a.name
-                                }
-
-                                </div> <a href="https://danbooru.donmai.us/artists/${a.id}" target="_blank" onclick="event.stopPropagation()" class="text-gray-500 hover:text-blue-400 text-xs" title="View on Danbooru" >↗</a> $ {
-                                    a.style_category ? `<span class="text-xs bg-purple-900 text-purple-200 px-1 rounded" >$ {
-                                        a.style_category
-                                    }
-
-                                    </span>` : ''
-                                }
-
-                                </div> <span class="text-xs text-gray-500 flex flex-col items-end gap-1" ><span>🖼️$ {
-                                    a.image_count || 0
-                                }
-
-                                </span><span>🤖$ {
-                                    a.gen_count || 0
-                                }
-
-                                </span></span> </div>`;
+        <!-- Configuration Tab -->
+        <div id="view-settings" class="h-full hidden overflow-y-auto p-6">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <h2 class="text-2xl font-bold text-blue-400 mb-4">Application Configuration</h2>
+                <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                    <h3 class="text-lg font-semibold text-blue-400 mb-4">Database Settings</h3>
+                    <div class="space-y-4">
+                        <div><label class="block text-xs text-gray-400 mb-1">MongoDB URI</label><input type="text"
+                                id="cfgMongoUri" placeholder="mongodb://localhost:27017/"
+                                class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"></div>
+                        <div><label class="block text-xs text-gray-400 mb-1">Database Name</label><input type="text"
+                                id="cfgDbName" placeholder="danbooru_ranker"
+                                class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"></div>
+                    </div>
+                </div>
+                <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                    <h3 class="text-lg font-semibold text-green-400 mb-4">Data Directories</h3>
+                    <div class="space-y-4">
+                        <div><label class="block text-xs text-gray-400 mb-1">Data Directory</label><input type="text"
+                                id="cfgDataDir" placeholder="Path to data directory"
+                                class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm">
+                            <p class="text-xs text-gray-500 mt-1">Images and generated outputs will be stored here</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                    <h3 class="text-lg font-semibold text-purple-400 mb-4">Stable Diffusion APIs</h3>
+                    <div class="space-y-4">
+                        <div><label class="block text-xs text-gray-400 mb-2">API URLs (one per line)</label><textarea
+                                id="cfgSdUrls" rows="3" placeholder="http://127.0.0.1:7860"
+                                class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm font-mono"></textarea><button
+                                onclick="scanSDInstances()"
+                                class="mt-2 bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded text-sm">🔍
+                                Scan for SD Instances</button>
+                            <div id="sdScanResults" class="mt-2 hidden">
+                                <p class="text-xs text-gray-400 mb-1">Detected instances:</p>
+                                <div id="sdInstanceList" class="space-y-1"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                    <h3 class="text-lg font-semibold text-yellow-400 mb-4">Style Analysis (Optional)</h3>
+                    <div class="space-y-4">
+                        <div><label class="block text-xs text-gray-400 mb-1">HTML File Path</label><input type="text"
+                                id="cfgStyleHtml" placeholder="Path to Artists_Gens.html"
+                                class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"></div>
+                        <div><label class="block text-xs text-gray-400 mb-1">Samples Directory</label><input type="text"
+                                id="cfgStyleSamples" placeholder="Path to samples directory"
+                                class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"></div>
+                        <button onclick="validateStylePaths()" // Remove active from all tabs
+                            document.getElementById('tab-browse').classList.remove('tab-active');
+                            document.getElementById('tab-browse').classList.add('text-gray-400', 'hover:text-gray-200'
+                            ); document.getElementById('tab-control').classList.remove('tab-active');
+                            document.getElementById('tab-control').classList.add('text-gray-400', 'hover:text-gray-200'
+                            ); document.getElementById('tab-settings').classList.remove('tab-active');
+                            document.getElementById('tab-settings').classList.add('text-gray-400', 'hover:text-gray-200'
+                            ); // Show selected view document.getElementById(`view-${tab}`).classList.remove('hidden');
+                            // Set active tab document.getElementById(`tab-${tab}`).classList.add('tab-active');
+                            document.getElementById(`tab-${tab}`).classList.remove('text-gray-400', 'hover:text-gray-200'
+                            ); if (tab==='control' ) { loadControlPanelData(); } else if (tab==='settings' ) {
+                            loadConfiguration(); } } async function loadAuthors() { const
+                            search=document.getElementById('authorSearch').value; const
+                            category=document.getElementById('authorCategory').value; const
+                            sortBy=document.getElementById('authorSort').value; const
+                            list=document.getElementById('authorList'); try { const res=await
+                            fetch(`/api/authors?page=${currentPage}&search=${search}&category=${category}&sort_by=${sortBy}&sort_order=${sortOrder}`);
+                            const data=await res.json(); const authors=data.items || []; totalPages=data.pages;
+                            document.getElementById('pageIndicator').textContent=`Page ${currentPage} of ${totalPages}`;
+                            list.innerHTML=authors.map(a=> {
+                            const safeName = a.name.replace(/'/g, "\\'");
+                            return `<div onclick="selectAuthor(${a.id}, '${safeName}')"
+                                class="cursor-pointer p-2 hover:bg-gray-700 rounded text-sm truncate flex justify-between items-center ${currentAuthorId === a.id ? 'bg-blue-900 text-blue-200' : 'text-gray-300'}">
+                                <div class="flex items-center gap-2 overflow-hidden">
+                                    <div class="truncate max-w-[120px]" title="${a.name}">${a.name}</div>
+                                    <a href="https://danbooru.donmai.us/posts?tags=${encodeURIComponent(a.name)}"
+                                        target="_blank" onclick="event.stopPropagation()"
+                                        class="text-gray-500 hover:text-blue-400 text-xs" title="View on Danbooru">↗</a>
+                                    ${a.style_category ? `<span
+                                        class="text-xs bg-purple-900 text-purple-200 px-1 rounded">${a.style_category}</span>`
+                                    : ''}
+                                </div>
+                                <div class="text-xs text-gray-500 flex gap-2"><span>🖼️${a.image_count ||
+                                        0}</span><span>🤖${a.gen_count || 0}</span></div>
+                            </div>`;
                             }).join('');
-                    }
-
-                    catch (e) {
-                        list.innerHTML='<div class="text-red-500 text-center text-sm">Error loading authors</div>';
-                    }
-                }
-
-                function changePage(delta) {
-                    const newPage=currentPage + delta;
-                    if (newPage < 1 || newPage > totalPages) return;
-                    currentPage=newPage;
-                    loadAuthors();
-                }
-
-                async function loadCategories() {
-                    try {
-                        const res=await fetch('/api/categories');
-                        const categories=await res.json();
-                        const sel=document.getElementById('authorCategory');
-                        sel.innerHTML='<option value="">All Styles</option>';
-
-                        categories.forEach(c=> {
-                                const opt=document.createElement('option'); opt.value=c; opt.textContent=c; sel.appendChild(opt);
-                            });
-                    }
-
-                    catch (e) {}
-                }
-
-                document.getElementById('authorSearch').addEventListener('input', loadAuthors);
-
-                function selectAuthor(id, name) {
-                    currentAuthorId=id;
-                    document.getElementById('currentAuthor').textContent=name;
-                    document.getElementById('btnGenAuthor').classList.remove('hidden');
-                    loadAuthors();
-                    loadImages(id);
-                }
-
-                async function loadImages(authorId) {
-                    const grid=document.getElementById('imageGrid');
-                    grid.innerHTML='<div class="text-center mt-10 text-gray-500">Loading...</div>';
-
-                    try {
-                        const res=await fetch(`/api/images/$ {
-                                authorId
+                            } catch (e) { list.innerHTML = '<div class="text-red-500 text-center text-sm">Error loading
+                                authors</div>'; }
                             }
 
-                            `);
-                        const images=await res.json();
-                        document.getElementById('imgCount').textContent=images.length;
+                            function changePage(delta) {
+                            const newPage = currentPage + delta;
+                            if (newPage < 1 || newPage> totalPages) return;
+                                currentPage = newPage;
+                                loadAuthors();
+                                }
 
-                        if (images.length===0) {
-                            grid.innerHTML='<div class="text-center mt-10 text-gray-500">No images found.</div>'; return;
-                        }
+                                async function loadCategories() {
+                                try {
+                                const res = await fetch('/api/categories');
+                                const categories = await res.json();
+                                const sel = document.getElementById('authorCategory');
+                                sel.innerHTML = '<option value="">All Styles</option>';
+                                categories.forEach(c => { const opt = document.createElement('option'); opt.value = c;
+                                opt.textContent = c; sel.appendChild(opt); });
+                                } catch (e) { }
+                                }
 
-                        grid.innerHTML=images.map(img=> ` <div class="bg-gray-800 rounded-lg p-4 border border-gray-700" > <div class="flex justify-between items-start mb-2" > <div class="text-xs text-gray-400" >ID: $ {
-                                img.id
-                            }
+                                document.getElementById('authorSearch').addEventListener('input', loadAuthors);
 
-                            </div> <a href="${img.file_url}" target="_blank" class="text-xs text-blue-400 hover:underline" >Danbooru ↗</a> </div> <div class="flex flex-wrap gap-4 pb-4" > <div class="flex-shrink-0 w-80" > <div class="mb-2 text-sm font-semibold text-green-400" >Original</div> <img src="${img.local_path}" class="w-full rounded shadow-lg bg-gray-900 min-h-[200px] object-contain" > <button onclick="openUploadModal(${img.id})" class="mt-2 w-full py-1 text-xs border border-gray-600 rounded hover:bg-gray-700 text-gray-400" >+ Add Generation</button> <div class="mt-2 text-xs text-gray-500 h-20 overflow-y-auto scrollbar-hide bg-gray-800 p-1 rounded border border-gray-700" > $ {
-                                img.tags ? img.tags.split(' ').map(t=> `<span class="inline-block bg-gray-700 px-1 rounded mr-1 mb-1" >$ {
-                                        t
+                                function selectAuthor(id, name) {
+                                currentAuthorId = id;
+                                document.getElementById('currentAuthor').textContent = name;
+                                document.getElementById('btnGenAuthor').classList.remove('hidden');
+
+                                // Update selection in list
+                                loadAuthors();
+                                loadImages(id);
+                                }
+
+                                async function loadImages(authorId) {
+                                if (!authorId) return;
+                                const grid = document.getElementById('imageGrid');
+                                try {
+                                if (!document.getElementById('autoRefresh').checked) {
+                                grid.innerHTML = '<div class="text-center mt-10 text-gray-500">Loading...</div>';
+                                }
+                                const res = await fetch(`/api/images/${authorId}`);
+                                const images = await res.json();
+
+                                document.getElementById('imgCount').textContent = images.length;
+                                if (images.length === 0) { grid.innerHTML = '<div
+                                    class="text-center mt-20 text-gray-500">No images found.</div>'; return; }
+
+                                grid.innerHTML = images.map(img => `
+                                <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div class="text-xs text-gray-400">ID: ${img.id}</div>
+                                        <a href="${img.url}" target="_blank"
+                                            class="text-xs text-blue-400 hover:text-blue-300">Danbooru ↗</a>
+                                    </div>
+                                    <div class="flex flex-wrap gap-4 pb-4 border-b border-gray-700 mb-4">
+                                        <div class="w-48">
+                                            <div
+                                                class="text-xs text-gray-500 mb-1 text-center font-bold text-green-400">
+                                                Original</div>
+                                            <img src="${img.local_path}"
+                                                class="w-full rounded shadow-lg bg-gray-900 min-h-[200px] object-contain">
+                                            <button onclick="openUploadModal(${img.id})"
+                                                class="mt-2 w-full py-1 text-xs border border-gray-600 rounded hover:bg-gray-700 text-gray-400">+
+                                                Add Gen</button>
+                                            <div
+                                                class="mt-2 text-xs text-gray-500 h-20 overflow-y-auto scrollbar-hide bg-gray-800 p-1 rounded border border-gray-700">
+                                                ${img.tags ? img.tags.split(' ').map(t => `<span
+                                                    class="inline-block bg-gray-700 px-1 rounded mr-1 mb-1">${t}</span>`).join('')
+                                                : 'No tags'}
+                                            </div>
+                                        </div>
+                                        ${img.generations.map(gen => `
+                                        <div class="w-48">
+                                            <div class="flex justify-between items-center mb-1">
+                                                <div class="text-xs font-semibold text-purple-400 truncate"
+                                                    title="${gen.model}">${gen.model}</div>
+                                            </div>
+                                            <img src="${gen.local_path}"
+                                                class="w-full rounded shadow-lg bg-gray-900 min-h-[200px] object-contain">
+                                            <div class="mt-2 space-y-1">
+                                                <div class="flex justify-between text-[10px] text-gray-400">
+                                                    <span>Step:${gen.steps} CFG:${gen.cfg}</span>
+                                                    <span>${gen.scheduler || ''}</span>
+                                                </div>
+                                                <div class="mt-1 text-xs text-gray-500 h-12 overflow-y-auto scrollbar-hide bg-gray-800 p-1 rounded border border-gray-700 italic"
+                                                    title="${gen.prompt}">${gen.prompt}</div>
+                                            </div>
+                                        </div>`).join('')}
+                                    </div>
+                                </div>`).join('');
+                                } catch (e) { grid.innerHTML = '<div class="text-red-500">Error loading images</div>'; }
+                                }
+
+                                async function loadControlPanelData() {
+                                try {
+                                const mRes = await fetch('/api/sd/models');
+                                const models = await mRes.json();
+                                document.getElementById('modelList').innerHTML = models.map(m => `
+                                <label class="flex items-center space-x-2 p-1 hover:bg-gray-600 rounded cursor-pointer">
+                                    <input type="checkbox" value="${m.title}"
+                                        ${m.title.includes('NoobAIXLVpredv1.0v29bv2.safetensors') ? 'checked' : '' }
+                                        class="form-checkbox rounded bg-gray-800 border-gray-500">
+                                    <span class="text-xs text-gray-300 truncate"
+                                        title="${m.title}">${m.model_name}</span>
+                                </label>`).join('');
+                                } catch (e) { document.getElementById('modelList').innerHTML = 'Error loading models'; }
+
+                                try {
+                                const sRes = await fetch('/api/sd/samplers');
+                                const samplers = await sRes.json();
+                                const sel = document.getElementById('genSampler');
+                                sel.innerHTML = samplers.map(s => `<option value="${s.name}">${s.name}</option>
+                                `).join('');
+                                sel.value = "Euler a";
+                                } catch (e) { }
+
+                                try {
+                                const scRes = await fetch('/api/sd/schedulers');
+                                const schedulers = await scRes.json();
+                                const sel = document.getElementById('genScheduler');
+                                sel.innerHTML = schedulers.map(s => `<option value="${s.name}">${s.name}</option>
+                                `).join('');
+                                sel.value = "Automatic";
+                                } catch (e) { }
+                                }
+
+                                async function startScraper() {
+                                const limit = document.getElementById('scraperLimit').value;
+                                const max = document.getElementById('scraperMax').value;
+                                const minPosts = document.getElementById('scraperMinPosts').value;
+
+                                document.getElementById('statusBar').classList.remove('hidden');
+                                document.getElementById('taskList').innerHTML += `
+                                <div class="bg-gray-700 rounded p-2">
+                                    <div class="flex justify-between text-xs mb-1"><span class="font-semibold">Starting
+                                            Scraper...</span><span>0%</span></div>
+                                    <div class="w-full bg-gray-900 rounded-full h-2 mb-1">
+                                        <div class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+                                    </div>
+                                    <div class="text-xs text-gray-400">Initializing...</div>
+                                </div>`;
+
+                                try {
+                                await fetch('/api/scraper/start', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ limit_authors: parseInt(limit), max_images: parseInt(max),
+                                min_posts: parseInt(minPosts) })
+                                });
+                                for (let i = 0; i < 10; i++) { await new Promise(resolve=> setTimeout(resolve, 500));
+                                    await pollStatus(); }
+                                    } catch (e) { alert('Failed to start scraper');
+                                    document.getElementById('statusBar').classList.add('hidden'); }
                                     }
 
-                                    </span>`).join('') : 'No tags'
-                            }
-
-                            </div> </div> $ {
-                                img.generations.map(gen=> ` <div class="flex-shrink-0 w-80" > <div class="mb-2 text-sm font-semibold text-purple-400 truncate" title="${gen.model}" >$ {
-                                        gen.model
-                                    }
-
-                                    </div> <img src="${gen.local_path}" class="w-full rounded shadow-lg bg-gray-900 min-h-[200px] object-contain" > <div class="mt-2 text-xs text-gray-400" > <div class="flex justify-between" ><span>Step:$ {
-                                        gen.steps
-                                    }
-
-                                    CFG:$ {
-                                        gen.cfg
-                                    }
-
-                                    </span><span>$ {
-                                        gen.scheduler || ''
-                                    }
-
-                                    </span></div> <div class="mt-1 text-xs text-gray-500 h-16 overflow-y-auto scrollbar-hide bg-gray-800 p-1 rounded border border-gray-700 italic" title="${gen.prompt}" >$ {
-                                        gen.prompt
-                                    }
-
-                                    </div> </div> </div>`).join('')
-                            }
-
-                            </div> </div>`).join('');
-                    }
-
-                    catch (e) {
-                        grid.innerHTML='<div class="text-red-500">Error loading images</div>';
-                    }
-                }
-
-                async function loadControlPanelData() {
-                    try {
-                        const mRes=await fetch('/api/sd/models');
-                        const models=await mRes.json();
-
-                        document.getElementById('modelList').innerHTML=models.map(m=> ` <label class="flex items-center space-x-2 p-1 hover:bg-gray-600 rounded cursor-pointer" > <input type="checkbox" value="${m.title}"$ {
-                                m.title.includes('NoobAIXLVpredv1.0v29bv2.safetensors') ? 'checked' : ''
-                            }
-
-                            class="form-checkbox text-purple-600 rounded bg-gray-800 border-gray-500" > <span class="text-xs truncate" >$ {
-                                m.title
-                            }
-
-                            </span> </label>`).join('');
-                    }
-
-                    catch (e) {
-                        document.getElementById('modelList').innerHTML='Error loading models';
-                    }
-
-                    try {
-                        const sRes=await fetch('/api/sd/samplers');
-                        const samplers=await sRes.json();
-                        const sel=document.getElementById('genSampler');
-
-                        sel.innerHTML=samplers.map(s=> `<option value="${s.name}" >$ {
-                                s.name
-                            }
-
-                            </option>`).join('');
-                        sel.value="Euler a";
-                    }
-
-                    catch (e) {}
-
-                    try {
-                        const scRes=await fetch('/api/sd/schedulers');
-                        const schedulers=await scRes.json();
-                        const sel=document.getElementById('genScheduler');
-
-                        sel.innerHTML=schedulers.map(s=> `<option value="${s.name}" >$ {
-                                s.name
-                            }
-
-                            </option>`).join('');
-                        sel.value="sgm uniform";
-                    }
-
-                    catch (e) {}
-                }
-
-                async function startScraper() {
-                    const limit=document.getElementById('scraperLimit').value;
-                    const max=document.getElementById('scraperMax').value;
-                    const minPosts=document.getElementById('scraperMinPosts').value;
-                    document.getElementById('statusBar').classList.remove('hidden');
-                    document.getElementById('taskList').innerHTML=` <div class="bg-gray-700 rounded p-2" > <div class="flex justify-between text-xs mb-1" ><span class="font-semibold capitalize" >⏳ Scraper</span><span>0%</span></div> <div class="w-full bg-gray-900 rounded-full h-2 mb-1" ><div class="bg-blue-600 h-2 rounded-full" style="width: 0%" ></div></div> <div class="text-xs text-gray-400" >Starting scraper...</div> </div>`;
-
-                    try {
-                        await fetch('/api/scraper/start', {
-
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            }
-
-                            ,
-                            body: JSON.stringify({
-                                limit_authors: parseInt(limit), max_images: parseInt(max), min_posts: parseInt(minPosts)
-                            })
-                    });
-
-                for (let i=0; i < 10; i++) {
-                    await new Promise(resolve=> setTimeout(resolve, 500)); await pollStatus();
-                }
-            }
-
-            catch (e) {
-                alert('Failed to start scraper'); document.getElementById('statusBar').classList.add('hidden');
-            }
-        }
-
-        async function startGenerator(authorId=null) {
-            const checkboxes=document.querySelectorAll('#modelList input:checked');
-            const models=Array.from(checkboxes).map(cb=> cb.value);
-            if (models.length===0) return alert('Please select at least one model');
-
-            const payload= {
-                models: models,
-                steps: parseInt(document.getElementById('genSteps').value),
-                cfg: parseFloat(document.getElementById('genCfg').value),
-                sampler: document.getElementById('genSampler').value,
-                scheduler: document.getElementById('genScheduler').value,
-                limit: parseInt(document.getElementById('genLimit').value),
-                prompt: document.getElementById('genPrompt').value,
-                authors: authorId ? authorId.toString() : ""
-            }
-
-            ;
-            document.getElementById('statusBar').classList.remove('hidden');
-            document.getElementById('taskList').innerHTML=` <div class="bg-gray-700 rounded p-2" > <div class="flex justify-between text-xs mb-1" ><span class="font-semibold capitalize" >⏳ Generator</span><span>0%</span></div> <div class="w-full bg-gray-900 rounded-full h-2 mb-1" ><div class="bg-blue-600 h-2 rounded-full" style="width: 0%" ></div></div> <div class="text-xs text-gray-400" >Starting generator...</div> </div>`;
-
-            try {
-                await fetch('/api/generator/start', {
-
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-
-                    ,
-                    body: JSON.stringify(payload)
-                });
-
-            for (let i=0; i < 10; i++) {
-                await new Promise(resolve=> setTimeout(resolve, 500)); await pollStatus();
-            }
-        }
-
-        catch (e) {
-            alert('Failed to start generator'); document.getElementById('statusBar').classList.add('hidden');
-        }
-        }
-
-        function startGeneratorForAuthor() {
-            if ( !currentAuthorId) return alert("No author selected");
-
-            if (document.getElementById('modelList').children.length <=1) {
-                alert("Please go to Control Panel to select models first."); switchTab('control'); return;
-            }
-
-            startGenerator(currentAuthorId);
-        }
-
-        async function startAnalysis() {
-            try {
-                await fetch('/api/style/analyze', {
-                    method: 'POST'
-                }); pollStatus();
-        }
-
-        catch (e) {
-            alert('Failed to start analysis');
-        }
-        }
-
-        async function startAggregation() {
-            try {
-                await fetch('/api/style/aggregate', {
-                    method: 'POST'
-                }); pollStatus();
-        }
-
-        catch (e) {
-            alert('Failed to start aggregation');
-        }
-        }
-
-        function openImportModal() {
-            document.getElementById('importModal').classList.remove('hidden');
-        }
-
-        function closeImportModal() {
-            document.getElementById('importModal').classList.add('hidden');
-        }
-
-        async function submitImport() {
-            const url=document.getElementById('importUrl').value;
-            if ( !url) return alert('Please enter a URL');
-
-            try {
-                await fetch('/api/import', {
-                    method: 'POST', headers: {
-                        'Content-Type': 'application/json'
-                    }
-
-                    , body: JSON.stringify({
-                        url: url
-                    })
-            }); alert('Import started!'); closeImportModal(); loadAuthors();
-        }
-
-        catch (e) {
-            alert('Import failed');
-        }
-        }
-
-        function openUploadModal(oid) {
-            document.getElementById('uploadOriginalId').value=oid; document.getElementById('uploadAuthorId').value=currentAuthorId; document.getElementById('uploadModal').classList.remove('hidden');
-        }
-
-        function closeUploadModal() {
-            document.getElementById('uploadModal').classList.add('hidden');
-        }
-
-        async function submitUpload(e) {
-            e.preventDefault(); const formData=new FormData(e.target);
-
-            try {
-                await fetch('/api/upload', {
-                    method: 'POST', body: formData
-                }); closeUploadModal(); loadImages(currentAuthorId);
-        }
-
-        catch (e) {
-            alert('Upload failed');
-        }
-        }
-
-        async function controlTask(taskId, action) {
-            try {
-                await fetch(`/api/tasks/$ {
-                        taskId
-                    }
-
-                    /$ {
-                        action
-                    }
-
-                    `, {
-                    method: 'POST'
-                });
-            pollStatus();
-        }
-
-        catch (e) {
-            alert(`Failed to $ {
-                    action
-                }
-
-                task`);
-        }
-        }
-
-        async function pollStatus() {
-            try {
-                const res=await fetch('/api/status');
-                const status=await res.json();
-                const taskList=document.getElementById('taskList');
-                const bar=document.getElementById('statusBar');
-                let activeTasks=[];
-
-                for (const [key, val] of Object.entries(status)) {
-                    if (val.status==='running' || val.status==='starting' || val.status==='paused') activeTasks.push({
-                        name: key, ...val
-                    });
-
-                else if (val.status==='error') activeTasks.push({
-                    name: key, ...val
-                });
-        }
-
-        if (activeTasks.length > 0) {
-            bar.classList.remove('hidden');
-
-            taskList.innerHTML=activeTasks.map(t=> {
-                    const color=t.status==='error' ? 'bg-red-600' : 'bg-blue-600';
-                    const icon=t.status==='error' ? '⚠️' : '⏳';
-                    const isPaused=t.status==='paused';
-
-                    const controls=(t.status==='running' || t.status==='paused' || t.status==='starting') ? ` <div class="flex gap-2 mt-1 justify-end" > $ {
-                        t.status !=='starting' ? ` <button onclick="controlTask('${t.name}', '${isPaused ? 'resume' : 'pause'}')" class="text-xs px-2 py-0.5 rounded bg-gray-600 hover:bg-gray-500 text-white" >$ {
-                            isPaused ? 'Resume' : 'Pause'
-                        }
-
-                        </button> ` : ''
-                    }
-
-                    <button onclick="controlTask('${t.name}', 'cancel')" class="text-xs px-2 py-0.5 rounded bg-red-900 hover:bg-red-800 text-red-200" >Cancel</button> </div>` : '';
-
-                    return `<div class="bg-gray-700 rounded p-2" > <div class="flex justify-between text-xs mb-1" ><span class="font-semibold capitalize" >$ {
-                        icon
-                    }
-
-                    $ {
-                        t.name.replace('_', ' ')
-                    }
-
-                    </span><span>$ {
-                        t.progress
-                    }
-
-                    %</span></div> <div class="w-full bg-gray-900 rounded-full h-2 mb-1" ><div class="${color} h-2 rounded-full transition-all duration-500" style="width: ${t.progress}%" ></div></div> <div class="text-xs text-gray-400 truncate" >$ {
-                        t.message
-                    }
-
-                    </div> $ {
-                        controls
-                    }
-
-                    </div>`;
-                }).join('');
-        }
-
-        else {
-            bar.classList.add('hidden');
-        }
-        }
-
-        catch (e) {
-            console.error('Status poll failed', e);
-        }
-        }
-
-        async function loadStats() {
-            try {
-                const res=await fetch('/api/stats');
-                const stats=await res.json();
-                document.getElementById('statAuthors').textContent=stats.authors;
-                document.getElementById('cfgDataDir').value=config.data_dir;
-                document.getElementById('cfgSdUrls').value=config.sd_api_urls.join('\n');
-                document.getElementById('cfgStyleHtml').value=config.style_html_path || '';
-                document.getElementById('cfgStyleSamples').value=config.style_samples_dir || '';
-            }
-
-            catch (error) {
-                console.error('Failed to load configuration:', error);
-            }
-        }
-
-        async function saveConfiguration() {
-            const config= {
-                mongo_uri: document.getElementById('cfgMongoUri').value,
-                db_name: document.getElementById('cfgDbName').value,
-                data_dir: document.getElementById('cfgDataDir').value,
-                sd_api_urls: document.getElementById('cfgSdUrls').value.split('\n').filter(u=> u.trim()),
-                style_html_path: document.getElementById('cfgStyleHtml').value,
-                style_samples_dir: document.getElementById('cfgStyleSamples').value
-            }
-
-            ;
-
-            try {
-                const response=await fetch('/api/config', {
-
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-
-                    ,
-                    body: JSON.stringify(config)
-                });
-            const result=await response.json();
-
-            const msgDiv=document.getElementById('cfgSaveMessage');
-            msgDiv.textContent=result.message;
-            msgDiv.className='bg-green-700 text-white text-sm text-center py-2 rounded';
-            msgDiv.classList.remove('hidden');
-            setTimeout(()=> msgDiv.classList.add('hidden'), 5000);
-        }
-
-        catch (error) {
-            const msgDiv=document.getElementById('cfgSaveMessage');
-            msgDiv.textContent='Failed to save configuration: ' + error.message;
-            msgDiv.className='bg-red-700 text-white text-sm text-center py-2 rounded';
-            msgDiv.classList.remove('hidden');
-        }
-        }
-
-        async function scanSDInstances() {
-            try {
-                const response=await fetch('/api/config/scan-sd', {
-                    method: 'POST'
-                });
-            const result=await response.json();
-
-            const resultsDiv=document.getElementById('sdScanResults');
-            const listDiv=document.getElementById('sdInstanceList');
-
-            if (result.found_count > 0) {
-                listDiv.innerHTML=result.instances.map(inst=> ` <div class="bg-gray-900 rounded px-3 py-2 flex justify-between items-center" > <span class="text-sm text-gray-300" >$ {
-                        inst.url
-                    }
-
-                    </span> <span class="text-xs text-gray-400" >Models: $ {
-                        inst.model_count
-                    }
-
-                    </span> </div> `).join('');
-
-                // Auto-fill textarea
-                const currentUrls=document.getElementById('cfgSdUrls').value.split('\n').filter(u=> u.trim());
-                const allUrls=[...new Set([...currentUrls, ...result.instances.map(i=> i.url)])];
-                document.getElementById('cfgSdUrls').value=allUrls.join('\n');
-
-                resultsDiv.classList.remove('hidden');
-            }
-
-            else {
-                listDiv.innerHTML='<p class="text-xs text-gray-500">No SD instances found on ports 7860-7869</p>';
-                resultsDiv.classList.remove('hidden');
-            }
-        }
-
-        catch (error) {
-            console.error('Scan failed:', error);
-        }
-        }
-
-        async function validateStylePaths() {
-            const htmlPath=document.getElementById('cfgStyleHtml').value;
-            const samplesDir=document.getElementById('cfgStyleSamples').value;
-
-            if ( !htmlPath && !samplesDir) {
-                return;
-            }
-
-            try {
-                const formData=new FormData();
-                formData.append('html_path', htmlPath);
-                formData.append('samples_dir', samplesDir);
-
-                const response=await fetch('/api/config/validate-paths', {
-                    method: 'POST',
-                    body: formData
-                });
-            const result=await response.json();
-
-            const validationDiv=document.getElementById('stylePathValidation');
-
-            validationDiv.innerHTML=` <span class="${result.html_valid ? 'text-green-400' : 'text-red-400'}" > $ {
-                result.html_valid ? '✓' : '✗'
-            }
-
-            HTML File </span> <span class="${result.samples_valid ? 'text-green-400' : 'text-red-400'} ml-4" > $ {
-                result.samples_valid ? '✓' : '✗'
-            }
-
-            Samples Directory </span> `;
-            validationDiv.classList.remove('hidden');
-        }
-
-        catch (error) {
-            console.error('Validation failed:', error);
-        }
-        }
-
-        </script> </body> </html>
+                                    async function startGenerator(authorId = null) {
+                                    const checkboxes = document.querySelectorAll('#modelList
+                                    input[type="checkbox"]:checked');
+                                    const models = Array.from(checkboxes).map(cb => cb.value);
+
+                                    if (models.length === 0) return alert('Please select at least one model');
+
+                                    const payload = {
+                                    models: models,
+                                    steps: parseInt(document.getElementById('genSteps').value),
+                                    cfg: parseFloat(document.getElementById('genCfg').value),
+                                    sampler: document.getElementById('genSampler').value,
+                                    scheduler: document.getElementById('genScheduler').value,
+                                    limit: parseInt(document.getElementById('genLimit').value),
+                                    prompt: document.getElementById('genPrompt').value,
+                                    authors: authorId ? String(authorId) : "",
+                                    skip_existing: true
+                                    };
+
+                                    document.getElementById('statusBar').classList.remove('hidden');
+                                    document.getElementById('taskList').innerHTML += `
+                                    <div class="bg-gray-700 rounded p-2">
+                                        <div class="flex justify-between text-xs mb-1"><span
+                                                class="font-semibold">Starting Generator...</span><span>0%</span></div>
+                                        <div class="w-full bg-gray-900 rounded-full h-2 mb-1">
+                                            <div class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+                                        </div>
+                                        <div class="text-xs text-gray-400">Initializing...</div>
+                                    </div>`;
+
+                                    try {
+                                    await fetch('/api/generator/start', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(payload)
+                                    });
+                                    for (let i = 0; i < 10; i++) { await new Promise(resolve=> setTimeout(resolve,
+                                        500)); await pollStatus(); }
+                                        } catch (e) { alert('Failed to start generator');
+                                        document.getElementById('statusBar').classList.add('hidden'); }
+                                        }
+
+                                        function startGeneratorForAuthor() {
+                                        if (!currentAuthorId) return alert('No artist selected');
+
+                                        // Check if models are loaded (simple check)
+                                        if (document.getElementById('modelList').children.length <= 1) { alert('Please
+                                            go to Control Panel to select models first!'); switchTab('control'); return;
+                                            } startGenerator(currentAuthorId); } async function startAnalysis() { try {
+                                            await fetch('/api/style/analyze', { method: 'POST' }); await pollStatus(); }
+                                            catch (e) { alert('Failed to start analysis'); } } async function
+                                            startAggregation() { try { await fetch('/api/style/aggregate', {
+                                            method: 'POST' }); await pollStatus(); } catch (e) { alert('Failed to start
+                                            aggregation'); } } function openImportModal() {
+                                            document.getElementById('importModal').classList.remove('hidden'); }
+                                            function closeImportModal() {
+                                            document.getElementById('importModal').classList.add('hidden'); } async
+                                            function submitImport() { const
+                                            url=document.getElementById('importUrl').value; if (!url) return
+                                            alert('Please enter a URL'); try { await fetch('/api/import', {
+                                            method: 'POST' , headers: { 'Content-Type' : 'application/json' }, body:
+                                            JSON.stringify({ url: url }) }); alert('Import started');
+                                            closeImportModal(); loadAuthors(); } catch (e) { alert('Import failed'); } }
+                                            function openUploadModal(oid) {
+                                            document.getElementById('uploadOriginalId').value=oid;
+                                            document.getElementById('uploadAuthorId').value=currentAuthorId;
+                                            document.getElementById('uploadModal').classList.remove('hidden'); }
+                                            function closeUploadModal() {
+                                            document.getElementById('uploadModal').classList.add('hidden'); } async
+                                            function submitUpload(e) { e.preventDefault(); const formData=new
+                                            FormData(e.target); try { await fetch('/api/upload', { method: 'POST' ,
+                                            body: formData }); closeUploadModal(); loadImages(currentAuthorId); } catch
+                                            (e) { alert('Upload failed'); } } async function controlTask(taskId, action)
+                                            { try { await fetch(`/api/tasks/${taskId}/${action}`, { method: 'POST' });
+                                            await pollStatus(); } catch (e) { alert(`Failed to ${action} task`); } }
+                                            async function pollStatus() { try { const res=await fetch('/api/status');
+                                            const status=await res.json(); const
+                                            taskList=document.getElementById('taskList'); const
+                                            bar=document.getElementById('statusBar'); let activeTasks=[]; for (const
+                                            [key, val] of Object.entries(status)) { if (val.status==='running' ||
+                                            val.status==='starting' || val.status==='paused' ) activeTasks.push({ name:
+                                            key, ...val }); else if (val.status==='error' ) activeTasks.push({ name:
+                                            key, ...val }); } if (activeTasks.length> 0) {
+                                            bar.classList.remove('hidden');
+                                            taskList.innerHTML = activeTasks.map(t => {
+                                            const color = t.status === 'error' ? 'bg-red-600' : 'bg-blue-600';
+                                            const icon = t.status === 'error' ? '⚠️' : '⏳';
+                                            const isPaused = t.status === 'paused';
+                                            const controls = (t.status === 'running' || t.status === 'paused' ||
+                                            t.status === 'starting') ? `
+                                            <div class="flex gap-2 mt-1 justify-end">
+                                                ${t.status !== 'starting' ? `
+                                                <button
+                                                    onclick="controlTask('${t.name}', '${isPaused ? 'resume' : 'pause'}')"
+                                                    class="text-xs px-2 py-0.5 rounded bg-gray-600 hover:bg-gray-500 text-white">${isPaused
+                                                    ? 'Resume' : 'Pause'}</button>
+                                                ` : ''}
+                                                <button onclick="controlTask('${t.name}', 'cancel')"
+                                                    class="text-xs px-2 py-0.5 rounded bg-red-900 hover:bg-red-800 text-red-200">Cancel</button>
+                                            </div>` : '';
+
+                                            return `<div class="bg-gray-700 rounded p-2">
+                                                <div class="flex justify-between text-xs mb-1"><span
+                                                        class="font-semibold capitalize">${icon} ${t.name.replace('_', '
+                                                        ')}</span><span>${t.progress}%</span></div>
+                                                <div class="w-full bg-gray-900 rounded-full h-2 mb-1">
+                                                    <div class="${color} h-2 rounded-full transition-all duration-500"
+                                                        style="width: ${t.progress}%"></div>
+                                                </div>
+                                                <div class="text-xs text-gray-400 truncate">${t.message}</div>
+                                                ${controls}
+                                            </div>`;
+                                            }).join('');
+                                            } else { bar.classList.add('hidden'); }
+                                            } catch (e) { console.error('Status poll failed', e); }
+                                            }
+
+                                            async function loadStats() {
+                                            try {
+                                            const res = await fetch('/api/stats');
+                                            const stats = await res.json();
+                                            document.getElementById('statAuthors').textContent = stats.authors;
+                                            document.getElementById('statImages').textContent = stats.images;
+                                            document.getElementById('statGens').textContent = stats.generations;
+                                            } catch (e) { }
+                                            }
+
+                                            setInterval(() => { if (document.getElementById('autoRefresh').checked) { if
+                                            (currentAuthorId) loadImages(currentAuthorId); } }, 10000);
+                                            setInterval(pollStatus, 2000);
+                                            setInterval(loadStats, 30000);
+                                            loadCategories(); loadAuthors(); loadStats();
+                                            </script>
+</body>
+
+</html>

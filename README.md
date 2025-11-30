@@ -30,26 +30,6 @@ A web application for collecting, generating, and comparing AI-generated images 
    ```
 
 2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Set up MongoDB**:
-   - Install MongoDB and ensure it's running on `localhost:27017`
-   - Or modify `MONGO_URI` in `config.py` to point to your MongoDB instance
-
-4. **Configure the application**:
-   ```bash
-# Stable Diffusion API Configuration
-# Add multiple URLs to enable parallel generation across GPUs
-SD_API_URLS = [
-    "http://127.0.0.1:7860",  # First GPU
-    # "http://127.0.0.1:7861",  # Second GPU (uncomment and configure)
-]
-
-# Directory Configuration
-DATA_DIR = r"d:\Pictures\sd_outputs\danbooru_ranker"
-IMAGES_DIR = os.path.join(DATA_DIR, "images")
 GENERATED_DIR = os.path.join(DATA_DIR, "generated")
 ```
 
@@ -137,6 +117,12 @@ The FastAPI server provides the following endpoints:
 - `POST /api/scraper/start` - Start the scraper
 - `POST /api/generator/start` - Start image generation
 - `POST /api/upload` - Upload generated images manually
+
+### 6. Factory Reset (Danger Zone)
+
+In the **Configuration** tab, you can perform a **Factory Reset**.
+- **Warning**: This permanently deletes **ALL** data (database, downloaded images, generated images).
+- Use this if you want to start completely fresh.
 
 ## Tips for Multi-GPU Setup
 
