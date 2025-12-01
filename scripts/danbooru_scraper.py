@@ -187,85 +187,122 @@ def fetch_posts_for_authors(db, max_images=10, limit_authors=0):
         print(msg)
         update_status(db, "running", progress, msg, processed, total_authors)
         
-        # Fetch posts for this artist
-        posts_data = fetch_json(f"{DANBOORU_API_URL}/posts.json", params={
-            "tags": author_name.replace(" ", "_"),
-            "limit": max_images
-        })
+        # Fetch posts for this artist with pagination
+        downloaded_count = 0
+        page = 1
+        consecutive_empty_pages = 0
         
-        source = "danbooru"
-        if not posts_data:
-            print(f"  No posts found on Danbooru for {author_name}, trying Gelbooru...")
-            posts_data = gelbooru.fetch_images_for_artist(author_name, limit=max_images)
-            source = "gelbooru"
-        
-        if not posts_data:
-            print(f"  No posts found for {author_name} (checked Danbooru and Gelbooru)")
-            continue
+        while downloaded_count < max_images:
+            if check_control(db) == "cancel":
+                print("Scraper cancelled.")
+                return
+
+            # Calculate batch size (max 100 per request to be safe)
+            batch_size = min(max_images - downloaded_count, 100)
             
-        for post in posts_data:
+            print(f"  Fetching page {page} for {author_name} (Need {max_images - downloaded_count} more)...")
+            
+            # Try Danbooru first
+            source = "danbooru"
+            posts_data = fetch_json(f"{DANBOORU_API_URL}/posts.json", params={
+                "tags": author_name.replace(" ", "_"),
+                "limit": batch_size,
+                "page": page
+            })
+            
+            # If Danbooru fails/empty on first page, try Gelbooru (only once for now as fallback)
+            if not posts_data and page == 1:
+                print(f"  No posts found on Danbooru for {author_name}, trying Gelbooru...")
+                # Gelbooru fallback - currently just one batch
+                posts_data = gelbooru.fetch_images_for_artist(author_name, limit=max_images)
+                source = "gelbooru"
+                
+            if not posts_data:
+                print(f"  No more posts found for {author_name}")
+                break
+                
+            posts_processed_in_batch = 0
+            for post in posts_data:
+                if downloaded_count >= max_images:
+                    break
+                    
+                if source == "gelbooru":
+                    # Map Gelbooru post to our structure
+                    image_data = gelbooru.map_post_to_image_data(post, author_id, author_name)
+                    post_id = image_data["_id"]
+                    file_url = image_data["file_url"]
+                    if file_url:
+                        ext = file_url.split('.')[-1]
+                    else:
+                        ext = "jpg"
+                else:
+                    # Danbooru post
+                    post_id = post.get("id")
+                    file_url = post.get("file_url")
+                    ext = post.get("file_ext", "jpg")
+                
+                if not file_url:
+                    continue
+                
+                # Skip non-image files (videos, etc.)
+                if ext.lower() in ['mp4', 'webm', 'gif', 'zip', 'swf']:
+                    print(f"  Skipping non-image file: {post_id}.{ext}")
+                    continue
+                    
+                # Check if we already have this image
+                if images_collection.count_documents({"_id": post_id}) > 0:
+                    # print(f"  Image {post_id} already exists, skipping")
+                    continue
+                    
+                # Download image
+                filename = f"{post_id}.{ext}"
+                
+                # Sanitize artist name for folder
+                safe_artist_name = "".join(c for c in author_name if c.isalnum() or c in (' ', '.', '_')).strip().replace(" ", "_")
+                artist_dir = os.path.join(IMAGES_DIR, safe_artist_name)
+                
+                if not os.path.exists(artist_dir):
+                    os.makedirs(artist_dir)
+                    
+                file_path = os.path.join(artist_dir, filename)
+                
+                if download_image(file_url, file_path):
+                    # Save to DB
+                    if source == "danbooru":
+                        image_data = {
+                            "_id": post_id,
+                            "author_id": author_id,
+                            "author_name": author_name,
+                            "tags": post.get("tag_string", ""),
+                            "file_url": file_url,
+                            "local_path": file_path,
+                            "width": post.get("image_width"),
+                            "height": post.get("image_height"),
+                            "created_at": post.get("created_at"),
+                            "fetched_at": datetime.now(),
+                            "source": "danbooru"
+                        }
+                    else:
+                        # Already mapped, just update local_path
+                        image_data["local_path"] = file_path
+                    
+                    images_collection.update_one(
+                        {"_id": post_id},
+                        {"$set": image_data},
+                        upsert=True
+                    )
+                    print(f"  Downloaded {filename} ({downloaded_count + 1}/{max_images})")
+                    downloaded_count += 1
+                    posts_processed_in_batch += 1
+            
+            # If we didn't process any posts in this batch (e.g. all existed or invalid), 
+            # but we still have posts, we should continue to next page.
+            # But if source is Gelbooru, we don't support pagination yet in this loop structure easily without refactoring GelbooruScraper.
+            # So for Gelbooru, we break after one batch.
             if source == "gelbooru":
-                # Map Gelbooru post to our structure
-                image_data = gelbooru.map_post_to_image_data(post, author_id, author_name)
-                post_id = image_data["_id"]
-                file_url = image_data["file_url"]
-                # Gelbooru posts might not have file_ext, extract from url
-                if file_url:
-                    ext = file_url.split('.')[-1]
-                else:
-                    ext = "jpg"
-            else:
-                # Danbooru post
-                post_id = post.get("id")
-                file_url = post.get("file_url")
-                ext = post.get("file_ext", "jpg")
-            
-            if not file_url:
-                continue
+                break
                 
-            # Check if we already have this image
-            if images_collection.count_documents({"_id": post_id}) > 0:
-                print(f"  Image {post_id} already exists, skipping")
-                continue
-                
-            # Download image
-            filename = f"{post_id}.{ext}"
-            
-            # Sanitize artist name for folder
-            safe_artist_name = "".join(c for c in author_name if c.isalnum() or c in (' ', '.', '_')).strip().replace(" ", "_")
-            artist_dir = os.path.join(IMAGES_DIR, safe_artist_name)
-            
-            if not os.path.exists(artist_dir):
-                os.makedirs(artist_dir)
-                
-            file_path = os.path.join(artist_dir, filename)
-            
-            if download_image(file_url, file_path):
-                # Save to DB
-                if source == "danbooru":
-                    image_data = {
-                        "_id": post_id,
-                        "author_id": author_id,
-                        "author_name": author_name,
-                        "tags": post.get("tag_string", ""),
-                        "file_url": file_url,
-                        "local_path": file_path,
-                        "width": post.get("image_width"),
-                        "height": post.get("image_height"),
-                        "created_at": post.get("created_at"),
-                        "fetched_at": datetime.now(),
-                        "source": "danbooru"
-                    }
-                else:
-                    # Already mapped, just update local_path
-                    image_data["local_path"] = file_path
-                
-                images_collection.update_one(
-                    {"_id": post_id},
-                    {"$set": image_data},
-                    upsert=True
-                )
-                print(f"  Downloaded {filename}")
+            page += 1
 
 def main():
     parser = argparse.ArgumentParser(description="Danbooru Scraper")

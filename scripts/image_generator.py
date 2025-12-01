@@ -44,7 +44,7 @@ def get_sd_models(api_url):
 def set_sd_model(model_title, api_url):
     payload = {"sd_model_checkpoint": model_title}
     try:
-        requests.post(f"{api_url}/sdapi/v1/options", json=payload, timeout=30)
+        requests.post(f"{api_url}/sdapi/v1/options", json=payload, timeout=300)
         print(f"[{api_url}] Switched model to: {model_title}")
         return True
     except Exception as e:

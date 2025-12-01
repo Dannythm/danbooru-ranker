@@ -57,6 +57,36 @@ class GelbooruScraper:
             print(f"Error fetching from Gelbooru for {artist_name}: {e}")
             return []
 
+    def fetch_post(self, post_id):
+        """Fetch a single post by ID"""
+        params = {
+            "page": "dapi",
+            "s": "post",
+            "q": "index",
+            "json": 1,
+            "id": post_id
+        }
+        
+        try:
+            response = requests.get(GELBOORU_API_URL, params=params, headers=self.headers)
+            response.raise_for_status()
+            data = response.json()
+            
+            if isinstance(data, list) and len(data) > 0:
+                return data[0]
+            elif isinstance(data, dict) and "post" in data:
+                posts = data["post"]
+                if isinstance(posts, list) and len(posts) > 0:
+                    return posts[0]
+                elif isinstance(posts, dict):
+                    return posts
+            
+            return None
+            
+        except Exception as e:
+            print(f"Error fetching post {post_id} from Gelbooru: {e}")
+            return None
+
     def map_post_to_image_data(self, post, author_id, author_name):
         """Map Gelbooru post to our Image schema"""
         # Gelbooru post keys: id, file_url, width, height, tags, created_at, etc.

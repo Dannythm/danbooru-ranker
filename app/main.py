@@ -16,6 +16,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from config import MONGO_URI, DB_NAME, DATA_DIR, IMAGES_DIR, GENERATED_DIR, SD_API_URL, SD_API_URLS
+from scripts.gelbooru_scraper import GelbooruScraper
 
 # Manual upload directory
 MANUAL_DIR = os.path.join(DATA_DIR, "manual")
@@ -198,12 +199,11 @@ async def reset_configuration():
     Factory Reset: Drops the database and clears data directories.
     """
     try:
-        # Drop Database
-        client = AsyncIOMotorClient(config.MONGO_URI)
-        await client.drop_database(config.DB_NAME)
+        # Drop Database (using the existing client and imported constants)
+        await client.drop_database(DB_NAME)
         
         # Clear Directories
-        for dir_path in [config.IMAGES_DIR, config.GENERATED_DIR]:
+        for dir_path in [IMAGES_DIR, GENERATED_DIR]:
             if os.path.exists(dir_path):
                 shutil.rmtree(dir_path)
                 os.makedirs(dir_path, exist_ok=True)
@@ -375,7 +375,13 @@ async def import_url(url: str = Query(...)):
                 
             ext = data.get("file_ext", "jpg")
             filename = f"{post_id}.{ext}"
-            file_path = os.path.join(ORIGINALS_DIR, filename)
+            
+            # Sanitize artist name for folder
+            safe_artist_name = "".join(c for c in artist_name if c.isalnum() or c in (' ', '.', '_')).strip().replace(" ", "_")
+            artist_dir = os.path.join(IMAGES_DIR, safe_artist_name)
+            os.makedirs(artist_dir, exist_ok=True)
+            
+            file_path = os.path.join(artist_dir, filename)
             
             with open(file_path, "wb") as f:
                 f.write(requests.get(file_url).content)
@@ -390,7 +396,8 @@ async def import_url(url: str = Query(...)):
                 "width": data.get("image_width"),
                 "height": data.get("image_height"),
                 "created_at": data.get("created_at"),
-                "fetched_at": datetime.now()
+                "fetched_at": datetime.now(),
+                "source": "danbooru"
             }
             
             await db.images.update_one(
@@ -401,8 +408,100 @@ async def import_url(url: str = Query(...)):
             
             return {"status": "success", "image_id": post_id, "author_id": artist_id}
             
+        elif "gelbooru.com" in url and "id=" in url:
+            # Parse ID from URL
+            try:
+                from urllib.parse import urlparse, parse_qs
+                parsed = urlparse(url)
+                qs = parse_qs(parsed.query)
+                post_id = qs.get("id", [None])[0]
+            except:
+                post_id = None
+                
+            if not post_id:
+                raise HTTPException(status_code=400, detail="Could not parse ID from Gelbooru URL")
+                
+            scraper = GelbooruScraper()
+            post = scraper.fetch_post(post_id)
+            
+            if not post:
+                raise HTTPException(status_code=404, detail="Post not found on Gelbooru")
+                
+            # Extract artist
+            tags = post.get("tags", "").split(" ")
+            # Gelbooru doesn't explicitly separate artist tags in the post object usually, 
+            # but we can try to guess or just use "unknown" if we can't query tag types easily without more API calls.
+            # For now, let's just use "imported_gelbooru" or try to find it if we had a tag type cache.
+            # OR, we can just use the first tag? No.
+            # Let's check if we can get artist from tags if we know them.
+            # Actually, without querying tag types, it's hard to know which tag is the artist.
+            # Let's use a placeholder or require user input? 
+            # For now, let's use "unknown_gelbooru" or similar, OR we can try to find a tag that looks like an artist?
+            # Better: Fetch tag details? No, too slow.
+            # Let's use "gelbooru_import" as artist for now, or maybe the user doesn't care?
+            # Wait, the user wants to rank likeness. We NEED the artist name.
+            # Gelbooru API doesn't give tag types in post response?
+            # Let's assume the user is importing for a specific artist? No, this is a general import.
+            # Let's try to fetch tag details for the tags? That's a lot of tags.
+            # Alternative: Just use "Gelbooru Import" as artist name?
+            # The user said "it should accept danbooru and gelbooru images or artists".
+            # If I import an image, I want it assigned to an artist.
+            # Let's try to get the artist from the tags string if possible?
+            # Actually, let's just use "Gelbooru Import" for now and maybe let user move it?
+            # OR, we can fetch the post page HTML and parse it? No.
+            # Let's look at the tags. Maybe we can just use the first tag?
+            # Let's use "Gelbooru_Import" as the artist name for now to be safe.
+            artist_name = "Gelbooru_Import"
+            
+            # Check if we can find an existing artist in our DB that matches one of the tags?
+            # This is a good heuristic.
+            potential_artists = await db.authors.find({"name": {"$in": tags}}).to_list(length=1)
+            if potential_artists:
+                artist_name = potential_artists[0]["name"]
+            
+            artist = await db.authors.find_one({"name": artist_name})
+            if not artist:
+                artist_id = abs(hash(artist_name)) % 10000000
+                await db.authors.update_one(
+                    {"name": artist_name},
+                    {"$set": {"_id": artist_id, "name": artist_name, "imported": True}},
+                    upsert=True
+                )
+            else:
+                artist_id = artist["_id"]
+                
+            # Map to our schema
+            image_data = scraper.map_post_to_image_data(post, artist_id, artist_name)
+            
+            # Download
+            file_url = image_data["file_url"]
+            if not file_url:
+                raise HTTPException(status_code=400, detail="No file URL in Gelbooru post")
+                
+            ext = file_url.split(".")[-1]
+            filename = f"gelbooru_{post_id}.{ext}"
+            
+            safe_artist_name = "".join(c for c in artist_name if c.isalnum() or c in (' ', '.', '_')).strip().replace(" ", "_")
+            artist_dir = os.path.join(IMAGES_DIR, safe_artist_name)
+            os.makedirs(artist_dir, exist_ok=True)
+            
+            file_path = os.path.join(artist_dir, filename)
+            
+            with open(file_path, "wb") as f:
+                f.write(requests.get(file_url).content)
+                
+            image_data["local_path"] = file_path
+            
+            await db.images.update_one(
+                {"_id": image_data["_id"]},
+                {"$set": image_data},
+                upsert=True
+            )
+            
+            return {"status": "success", "image_id": image_data["_id"], "author_id": artist_id}
+
         else:
-            raise HTTPException(status_code=400, detail="Only Danbooru URLs supported for now")
+            raise HTTPException(status_code=400, detail="Only Danbooru and Gelbooru URLs supported")
             
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
