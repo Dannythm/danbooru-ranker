@@ -84,8 +84,12 @@ async def get_stats():
 
 @app.post("/api/tasks/{task_id}/{action}")
 async def control_task(task_id: str, action: str):
-    if action not in ["pause", "resume", "cancel"]:
+    if action not in ["pause", "resume", "cancel", "dismiss"]:
         raise HTTPException(status_code=400, detail="Invalid action")
+    
+    if action == "dismiss":
+        await db.system_status.delete_one({"_id": task_id})
+        return {"status": "dismissed"}
     
     update = {}
     if action == "pause":

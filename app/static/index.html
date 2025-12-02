@@ -320,39 +320,48 @@
                         <div><label class="block text-xs text-gray-400 mb-1">Steps</label><input type="number"
                                 name="steps" value="28"
                                 class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"></div>
-                        <div><label class="block text-xs text-gray-400 mb-1">CFG</label><input type="number" name="cfg"
-                                value="7.0" step="0.5"
+                        <div><label class="block text-xs text-gray-400 mb-1">CFG Scale</label><input type="number"
+                                name="cfg" value="7.0" step="0.1"
                                 class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm"></div>
                     </div>
                 </div>
                 <div class="flex justify-end gap-2">
-                    <button type="button" onclick="closeUploadModal()"
-                        class="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 text-gray-300">Cancel</button>
+                    <button type="button" onclick="document.getElementById('uploadModal').classList.add('hidden')"
+                        class="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-500 text-sm">Cancel</button>
                     <button type="submit"
-                        class="px-4 py-2 bg-green-600 rounded hover:bg-green-500 text-white">Upload</button>
+                        class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 text-sm">Upload</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="resetModal" class="fixed inset-0 bg-black bg-opacity-75 hidden flex items-center justify-center z-50">
-        <div class="bg-gray-800 rounded-lg p-6 w-96 border border-red-700">
-            <h3 class="text-lg font-bold text-red-400 mb-2">Factory Reset</h3>
-            <p class="text-sm text-gray-300 mb-4">Are you sure? This will delete ALL data (artists, images,
-                generations). This cannot be undone.</p>
-            <div class="flex justify-end gap-2">
-                <button onclick="document.getElementById('resetModal').classList.add('hidden')"
-                    class="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 text-gray-300">Cancel</button>
-                <button onclick="performFactoryReset()"
-                    class="px-4 py-2 bg-red-700 rounded hover:bg-red-600 text-white">Delete Everything</button>
-            </div>
-        </div>
+    <!-- Lightbox Modal -->
+    <div id="lightboxModal" class="fixed inset-0 bg-black bg-opacity-90 hidden flex items-center justify-center z-[60]"
+        onclick="closeLightbox()">
+        <button onclick="closeLightbox()"
+            class="absolute top-4 right-4 text-white text-4xl hover:text-gray-300">&times;</button>
+        <img id="lightboxImage" src="" class="max-h-[95vh] max-w-[95vw] object-contain rounded shadow-2xl"
+            onclick="event.stopPropagation()">
     </div>
 
     <!-- Status Bar -->
     <div id="statusBar" class="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 p-2 hidden z-40">
         <div class="max-w-7xl mx-auto">
             <div id="taskList" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+        </div>
+    </div>
+
+    <div id="resetModal" class="fixed inset-0 bg-black bg-opacity-75 hidden flex items-center justify-center z-50">
+        <div class="bg-gray-800 rounded-lg p-6 w-96 border border-gray-700 border-red-900">
+            <h3 class="text-lg font-bold text-red-400 mb-4">Factory Reset</h3>
+            <p class="text-gray-300 text-sm mb-6">Are you sure? This will delete all data, images, and configurations.
+                This action cannot be undone.</p>
+            <div class="flex justify-end gap-2">
+                <button onclick="document.getElementById('resetModal').classList.add('hidden')"
+                    class="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 text-gray-300">Cancel</button>
+                <button onclick="performFactoryReset()"
+                    class="px-4 py-2 bg-red-700 rounded hover:bg-red-600 text-white">Delete Everything</button>
+            </div>
         </div>
     </div>
 
@@ -440,10 +449,10 @@
                         : `Error: ${inst.detail || 'Unknown'}`;
 
                     return `
-                    <div class="bg-gray-900 rounded px-3 py-2 flex justify-between items-center mb-1">
-                        <span class="text-sm text-gray-300">${inst.url}</span>
-                        <span class="text-xs font-bold ${statusColor}">${statusText}</span>
-                    </div>`;
+    <div class="bg-gray-900 rounded px-3 py-2 flex justify-between items-center mb-1">
+        <span class="text-sm text-gray-300">${inst.url}</span>
+        <span class="text-xs font-bold ${statusColor}">${statusText}</span>
+    </div>`;
                 }).join('');
             } catch (error) {
                 list.innerHTML = `<div class="text-red-500 text-xs">Scan failed: ${error.message}</div>`;
@@ -471,13 +480,13 @@
 
                 const validationDiv = document.getElementById('stylePathValidation');
                 validationDiv.innerHTML = `
-                <span class="${result.html_valid ? 'text-green-400' : 'text-red-400'}">
-                    ${result.html_valid ? '✓' : '✗'} HTML File
-                </span>
-                <span class="${result.samples_valid ? 'text-green-400' : 'text-red-400'} ml-4">
-                    ${result.samples_valid ? '✓' : '✗'} Samples Directory
-                </span>
-            `;
+<span class="${result.html_valid ? 'text-green-400' : 'text-red-400'}">
+    ${result.html_valid ? '✓' : '✗'} HTML File
+</span>
+<span class="${result.samples_valid ? 'text-green-400' : 'text-red-400'} ml-4">
+    ${result.samples_valid ? '✓' : '✗'} Samples Directory
+</span>
+`;
                 validationDiv.classList.remove('hidden');
             } catch (error) {
                 console.error('Validation failed:', error);
@@ -546,14 +555,14 @@
                 list.innerHTML = authors.map(a => {
                     const safeName = a.name.replace(/'/g, "\\'");
                     return `<div onclick="selectAuthor(${a.id}, '${safeName}')" 
-                        class="cursor-pointer p-2 hover:bg-gray-700 rounded text-sm truncate flex justify-between items-center ${currentAuthorId === a.id ? 'bg-blue-900 text-blue-200' : 'text-gray-300'}">
-                        <div class="flex items-center gap-2 overflow-hidden">
-                            <div class="truncate max-w-[120px]" title="${a.name}">${a.name}</div>
-                            <a href="https://danbooru.donmai.us/posts?tags=${encodeURIComponent(a.name)}" target="_blank" onclick="event.stopPropagation()" class="text-gray-500 hover:text-blue-400 text-xs" title="View on Danbooru">↗</a>
-                            ${a.style_category ? `<span class="text-xs bg-purple-900 text-purple-200 px-1 rounded">${a.style_category}</span>` : ''}
-                        </div>
-                        <div class="text-xs text-gray-500 flex gap-2"><span>🖼️${a.image_count || 0}</span><span>🤖${a.gen_count || 0}</span></div>
-                    </div>`;
+        class="cursor-pointer p-2 hover:bg-gray-700 rounded text-sm truncate flex justify-between items-center ${currentAuthorId === a.id ? 'bg-blue-900 text-blue-200' : 'text-gray-300'}">
+        <div class="flex items-center gap-2 overflow-hidden">
+            <div class="truncate max-w-[120px]" title="${a.name}">${a.name}</div>
+            <a href="https://danbooru.donmai.us/posts?tags=${encodeURIComponent(a.name)}" target="_blank" onclick="event.stopPropagation()" class="text-gray-500 hover:text-blue-400 text-xs" title="View on Danbooru">↗</a>
+            ${a.style_category ? `<span class="text-xs bg-purple-900 text-purple-200 px-1 rounded">${a.style_category}</span>` : ''}
+        </div>
+        <div class="text-xs text-gray-500 flex gap-2"><span>🖼️${a.image_count || 0}</span><span>🤖${a.gen_count || 0}</span></div>
+    </div>`;
                 }).join('');
             } catch (e) {
                 list.innerHTML = '<div class="text-red-500 text-center text-sm">Error loading authors</div>';
@@ -611,36 +620,36 @@
                 }
 
                 grid.innerHTML = images.map(img => `
-                <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="text-xs text-gray-400">ID: ${img.id}</div>
-                        <a href="${img.file_url}" target="_blank" class="text-xs text-blue-400 hover:text-blue-300">View Original ↗</a>
-                    </div>
-                    <div class="flex flex-wrap gap-4 pb-4 border-b border-gray-700 mb-4">
-                        <div class="w-48">
-                            <div class="text-xs text-gray-500 mb-1 text-center font-bold text-green-400">Original</div>
-                            <img src="${img.local_path}" class="w-full rounded shadow-lg bg-gray-900 min-h-[200px] object-contain">
-                            <button onclick="openUploadModal(${img.id})" class="mt-2 w-full py-1 text-xs border border-gray-600 rounded hover:bg-gray-700 text-gray-400">+ Add Gen</button>
-                            <div class="mt-2 text-xs text-gray-500 h-20 overflow-y-auto scrollbar-hide bg-gray-800 p-1 rounded border border-gray-700">
-                                ${img.tags ? img.tags.split(' ').map(t => `<span class="inline-block bg-gray-700 px-1 rounded mr-1 mb-1">${t}</span>`).join('') : 'No tags'}
-                            </div>
-                        </div>
-                        ${img.generations.map(gen => `
-                        <div class="w-48">
-                            <div class="flex justify-between items-center mb-1">
-                                <div class="text-xs font-semibold text-purple-400 truncate" title="${gen.model}">${gen.model}</div>
-                            </div>
-                            <img src="${gen.local_path}" class="w-full rounded shadow-lg bg-gray-900 min-h-[200px] object-contain">
-                            <div class="mt-2 space-y-1">
-                                <div class="flex justify-between text-[10px] text-gray-400">
-                                    <span>Step:${gen.steps} CFG:${gen.cfg}</span>
-                                    <span>${gen.scheduler || ''}</span>
-                                </div>
-                                <div class="mt-1 text-xs text-gray-500 h-12 overflow-y-auto scrollbar-hide bg-gray-800 p-1 rounded border border-gray-700 italic" title="${gen.prompt}">${gen.prompt}</div>
-                            </div>
-                        </div>`).join('')}
-                    </div>
-                </div>`).join('');
+<div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+    <div class="flex justify-between items-start mb-2">
+        <div class="text-xs text-gray-400">ID: ${img.id}</div>
+        <a href="${img.file_url}" target="_blank" class="text-xs text-blue-400 hover:text-blue-300">View Original ↗</a>
+    </div>
+    <div class="flex flex-wrap gap-4 pb-4 border-b border-gray-700 mb-4">
+        <div class="w-48">
+            <div class="text-xs text-gray-500 mb-1 text-center font-bold text-green-400">Original</div>
+            <img src="${img.local_path}" onclick="openLightbox('${img.local_path}')" class="w-full rounded shadow-lg bg-gray-900 min-h-[200px] object-contain cursor-pointer hover:opacity-90 transition">
+            <button onclick="openUploadModal(${img.id})" class="mt-2 w-full py-1 text-xs border border-gray-600 rounded hover:bg-gray-700 text-gray-400">+ Add Gen</button>
+            <div class="mt-2 text-xs text-gray-500 h-20 overflow-y-auto scrollbar-hide bg-gray-800 p-1 rounded border border-gray-700">
+                ${img.tags ? img.tags.split(' ').map(t => `<span class="inline-block bg-gray-700 px-1 rounded mr-1 mb-1">${t}</span>`).join('') : 'No tags'}
+            </div>
+        </div>
+        ${img.generations.map(gen => `
+        <div class="w-48">
+            <div class="flex justify-between items-center mb-1">
+                <div class="text-xs font-semibold text-purple-400 truncate" title="${gen.model}">${gen.model}</div>
+            </div>
+            <img src="${gen.local_path}" onclick="openLightbox('${gen.local_path}')" class="w-full rounded shadow-lg bg-gray-900 min-h-[200px] object-contain cursor-pointer hover:opacity-90 transition">
+            <div class="mt-2 space-y-1">
+                <div class="flex justify-between text-[10px] text-gray-400">
+                    <span>Step:${gen.steps} CFG:${gen.cfg}</span>
+                    <span>${gen.scheduler || ''}</span>
+                </div>
+                <div class="mt-1 text-xs text-gray-500 h-12 overflow-y-auto scrollbar-hide bg-gray-800 p-1 rounded border border-gray-700 italic" title="${gen.prompt}">${gen.prompt}</div>
+            </div>
+        </div>`).join('')}
+    </div>
+</div>`).join('');
             } catch (e) {
                 grid.innerHTML = '<div class="text-red-500">Error loading images</div>';
             }
@@ -651,10 +660,10 @@
                 const mRes = await fetch('/api/sd/models');
                 const models = await mRes.json();
                 document.getElementById('modelList').innerHTML = models.map(m => `
-                        <label class="flex items-center space-x-2 p-1 hover:bg-gray-600 rounded cursor-pointer">
-                            <input type="checkbox" value="${m.title}" ${m.title.includes('NoobAIXLVpredv1.0v29bv2.safetensors') ? 'checked' : ''} class="form-checkbox rounded bg-gray-800 border-gray-500">
-                            <span class="text-xs text-gray-300 truncate" title="${m.title}">${m.model_name}</span>
-                        </label>`).join('');
+        <label class="flex items-center space-x-2 p-1 hover:bg-gray-600 rounded cursor-pointer">
+            <input type="checkbox" value="${m.title}" ${m.title.includes('NoobAIXLVpredv1.0v29bv2.safetensors') ? 'checked' : ''} class="form-checkbox rounded bg-gray-800 border-gray-500">
+            <span class="text-xs text-gray-300 truncate" title="${m.title}">${m.model_name}</span>
+        </label>`).join('');
             } catch (e) {
                 document.getElementById('modelList').innerHTML = 'Error loading models';
             }
@@ -683,13 +692,13 @@
 
             document.getElementById('statusBar').classList.remove('hidden');
             document.getElementById('taskList').innerHTML += `
-                        <div class="bg-gray-700 rounded p-2">
-                <div class="flex justify-between text-xs mb-1"><span class="font-semibold">Starting Scraper...</span><span>0%</span></div>
-                <div class="w-full bg-gray-900 rounded-full h-2 mb-1">
-                    <div class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
-                </div>
-                <div class="text-xs text-gray-400">Initializing...</div>
-            </div>`;
+        <div class="bg-gray-700 rounded p-2">
+<div class="flex justify-between text-xs mb-1"><span class="font-semibold">Starting Scraper...</span><span>0%</span></div>
+<div class="w-full bg-gray-900 rounded-full h-2 mb-1">
+    <div class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+</div>
+<div class="text-xs text-gray-400">Initializing...</div>
+</div>`;
 
             try {
                 await fetch('/api/scraper/start', {
@@ -733,13 +742,13 @@
 
             document.getElementById('statusBar').classList.remove('hidden');
             document.getElementById('taskList').innerHTML += `
-                        <div class="bg-gray-700 rounded p-2">
-                <div class="flex justify-between text-xs mb-1"><span class="font-semibold">Starting Generator...</span><span>0%</span></div>
-                <div class="w-full bg-gray-900 rounded-full h-2 mb-1">
-                    <div class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
-                </div>
-                <div class="text-xs text-gray-400">Initializing...</div>
-            </div>`;
+        <div class="bg-gray-700 rounded p-2">
+<div class="flex justify-between text-xs mb-1"><span class="font-semibold">Starting Generator...</span><span>0%</span></div>
+<div class="w-full bg-gray-900 rounded-full h-2 mb-1">
+    <div class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+</div>
+<div class="text-xs text-gray-400">Initializing...</div>
+</div>`;
 
             try {
                 await fetch('/api/generator/start', {
@@ -799,11 +808,13 @@
 
         function closeImportModal() {
             document.getElementById('importModal').classList.add('hidden');
+            document.getElementById('importUrl').value = '';
         }
 
         async function submitImport() {
             const url = document.getElementById('importUrl').value;
-            if (!url) return alert('Please enter a URL');
+            if (!url) return;
+
             try {
                 await fetch('/api/import', {
                     method: 'POST',
@@ -832,14 +843,16 @@
             document.getElementById('uploadModal').classList.add('hidden');
         }
 
-        async function submitUpload(e) {
-            e.preventDefault();
-            const formData = new FormData(e.target);
+        async function submitUpload(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+
             try {
                 await fetch('/api/upload', {
                     method: 'POST',
                     body: formData
                 });
+                alert('Upload successful');
                 closeUploadModal();
                 loadImages(currentAuthorId);
             } catch (e) {
@@ -849,9 +862,7 @@
 
         async function controlTask(taskId, action) {
             try {
-                await fetch(`/api/tasks/${taskId}/${action}`, {
-                    method: 'POST'
-                });
+                await fetch(`/api/tasks/${taskId}/${action}`, { method: 'POST' });
                 await pollStatus();
             } catch (e) {
                 alert(`Failed to ${action} task`);
@@ -868,49 +879,44 @@
                 let activeTasks = [];
                 for (const [key, val] of Object.entries(status)) {
                     if (val.status === 'running' || val.status === 'starting' || val.status === 'paused') {
-                        activeTasks.push({
-                            name: key,
-                            ...val
-                        });
+                        activeTasks.push({ id: key, ...val });
                     } else if (val.status === 'error') {
-                        activeTasks.push({
-                            name: key,
-                            ...val
-                        });
+                        // Keep error tasks visible until dismissed
+                        activeTasks.push({ id: key, ...val });
                     }
                 }
 
-                if (activeTasks.length > 0) {
-                    bar.classList.remove('hidden');
-                    taskList.innerHTML = activeTasks.map(t => {
-                        const color = t.status === 'error' ? 'bg-red-600' : 'bg-blue-600';
-                        const icon = t.status === 'error' ? '⚠️' : '⏳';
-                        const isPaused = t.status === 'paused';
-
-                        const controls = (t.status === 'running' || t.status === 'paused' || t.status === 'starting') ? `
-                            <div class="flex gap-2 mt-1 justify-end">
-                                ${t.status !== 'starting' ? `
-                                <button onclick="controlTask('${t.name}', '${isPaused ? 'resume' : 'pause'}')" class="text-xs px-2 py-0.5 rounded bg-gray-600 hover:bg-gray-500 text-white">${isPaused ? 'Resume' : 'Pause'}</button>
-                                ` : ''}
-                                <button onclick="controlTask('${t.name}', 'cancel')" class="text-xs px-2 py-0.5 rounded bg-red-900 hover:bg-red-800 text-red-200">Cancel</button>
-                            </div>` : '';
-
-                        return `
-                        <div class="bg-gray-700 rounded p-2">
-                            <div class="flex justify-between text-xs mb-1"><span class="font-semibold capitalize">${icon} ${t.name.replace('_', ' ')}</span><span>${t.progress}%</span></div>
-                            <div class="w-full bg-gray-900 rounded-full h-2 mb-1">
-                                <div class="${color} h-2 rounded-full transition-all duration-500" style="width: ${t.progress}%"></div>
-                            </div>
-                            <div class="text-xs text-gray-400 truncate">${t.message}</div>
-                            ${controls}
-                        </div>`;
-                    }).join('');
-                } else {
+                if (activeTasks.length === 0) {
                     bar.classList.add('hidden');
+                    taskList.innerHTML = '';
+                    return;
                 }
-            } catch (e) {
-                console.error('Status poll failed', e);
-            }
+
+                bar.classList.remove('hidden');
+                taskList.innerHTML = activeTasks.map(t => {
+                    const width = t.total > 0 ? Math.round((t.current / t.total) * 100) : 0;
+                    const color = t.status === 'error' ? 'bg-red-600' : (t.status === 'paused' ? 'bg-yellow-600' : 'bg-blue-600');
+                    return `
+            <div class="bg-gray-700 rounded p-2">
+                <div class="flex justify-between text-xs mb-1">
+                    <span class="font-semibold capitalize">${t.type} (${t.status})</span>
+                    <span>${width}%</span>
+                </div>
+                <div class="w-full bg-gray-900 rounded-full h-2 mb-1">
+                    <div class="${color} h-2 rounded-full transition-all duration-500" style="width: ${width}%"></div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <div class="text-xs text-gray-400 truncate max-w-[200px]">${t.message || ''}</div>
+                    <div class="flex gap-1">
+                        ${t.status === 'running' ? `<button onclick="controlTask('${t.id}', 'pause')" class="text-xs bg-yellow-700 px-1 rounded hover:bg-yellow-600">⏸</button>` : ''}
+                        ${t.status === 'paused' ? `<button onclick="controlTask('${t.id}', 'resume')" class="text-xs bg-green-700 px-1 rounded hover:bg-green-600">▶</button>` : ''}
+                        ${t.status === 'running' || t.status === 'paused' ? `<button onclick="controlTask('${t.id}', 'cancel')" class="text-xs bg-red-700 px-1 rounded hover:bg-red-600">⏹</button>` : ''}
+                        ${t.status === 'error' ? `<button onclick="controlTask('${t.id}', 'dismiss')" class="text-xs bg-gray-600 px-1 rounded hover:bg-gray-500">Dismiss</button>` : ''}
+                    </div>
+                </div>
+            </div>`;
+                }).join('');
+            } catch (e) { }
         }
 
         async function loadStats() {
@@ -934,6 +940,29 @@
         loadCategories();
         loadAuthors();
         loadStats();
+
+        // Lightbox Functions
+        function openLightbox(url) {
+            const modal = document.getElementById('lightboxModal');
+            const img = document.getElementById('lightboxImage');
+            img.src = url;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+
+        function closeLightbox() {
+            const modal = document.getElementById('lightboxModal');
+            modal.classList.add('hidden');
+            document.getElementById('lightboxImage').src = '';
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+
+        // Close on Escape key
+        document.addEventListener('keydown', function (event) {
+            if (event.key === "Escape") {
+                closeLightbox();
+            }
+        });
     </script>
 </body>
 
